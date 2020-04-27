@@ -3,21 +3,22 @@ const context = canvas.getContext('2d');
 
 const alarmRed = '#c00'
 
-// let board = document.getElementById('board');
+let myRAF; // myRAF = requestAnimationFrame
+
 let boardTop = document.getElementById('board-top');
 let boardBottom = document.getElementById('board-bottom');
 let tileX = document.getElementById('tile-x');
 
-let brdg01 = document.getElementById('brdg-01');
-let brdg02 = document.getElementById('brdg-02');
+let path01 = document.getElementById('path-01');
+let path02 = document.getElementById('path-02');
 
-let tile00 = document.getElementById('tile-00');
-let tile01 = document.getElementById('tile-01');
-let tile02 = document.getElementById('tile-02');
+let chip00 = document.getElementById('chip-00');
+let chip01 = document.getElementById('chip-01');
+let chip02 = document.getElementById('chip-02');
 
 
-let timerInput = 2; // time for solving puzzle in min;
-let timeSec = timerInput * 60 * 1;
+let timerInput = 1; // time for solving puzzle in min;
+let timeSec01 = timerInput * 60 * 10;
 
 function popUpWindow(type) {
   if (type == 'alarm') {
@@ -46,30 +47,30 @@ function popUpWindow(type) {
   }
 }
 
-function drawTimer() {
-  let timer = setInterval(myTimer, 1000);
+function drawDSTimer() {
+  let timer = setInterval(myTimer, 100);
   function myTimer() {
     let StrTimer = '00:00:00'
-    if (timeSec < 0) {
+    if (timeSec01 < 0) {
       clearInterval(timer);
       popUpWindow('time-out');
     } else {
-      h = Math.trunc(timeSec/60/60%60);
-      m = Math.trunc(timeSec/60%60);
-      s = timeSec%60; 
-      strTimer = (h<10) ? `0${h}` : `${h}`;
-      strTimer += (m<10) ? ` : 0${m}` : ` : ${m}`;
-      strTimer += (s<10) ? ` : 0${s}` : ` : ${s}`;
-      --timeSec;
+      m = Math.trunc(timeSec01/10/60 % 60);
+      s = Math.trunc(timeSec01/10 % 60);
+      ds = timeSec01%10; 
+      strTimer =  (m<10) ? `0${m}`  : `${m}`;
+      strTimer += (s<10) ? `:0${s}` : `:${s}`;
+      strTimer += `:${ds}0`;
+      --timeSec01;
       context.fillStyle = '#000';
-      if ((timeSec < 10) && (timeSec % 2 != 0)) {
-        context.fillStyle = '#c00'
+      if ((s < 10) && (s % 2 != 0)) {
+        context.fillStyle = '#b00'
       };
       context.fillRect(1010, 760, 205, 50);
-      context.font = "36px Arial";
+      context.font = "36px Consolas";
       context.fillStyle = '#0f0';
       context.textAlign = "start";
-      context.fillText("" + strTimer, 1020, 797);
+      context.fillText("" + strTimer, 1030, 796);
     }
   }
 }
@@ -82,10 +83,11 @@ function drawBoard() {
 }
 
 function drawTiles() {
+  context.drawImage(chip02, 8+(32*19)+3, 748);
   for (j = 0; j < 5; j++) {
     for (i = 1; i < 14; i += 2) {
-      context.drawImage(tile01, (33*3) + 64 * i, (2*33) + (j*64*2) - 6);
-      context.drawImage(brdg01, (33*3) + 64 * (i+1), (2*33) + (j*64*2));
+      context.drawImage(chip01, 10+(32*3) + 64 * i, (2*32) + (j*64*2) + 2);
+      if (i < 12) {context.drawImage(path02, 10+(32*3) + 64 * (i+1), (2*33) + (j*64*2))};
     }
   }
 }
@@ -111,12 +113,12 @@ function pauseBrowser(millis) {
 
 function draw() {
   drawTiles();
-  context.drawImage(tile02, (32*19)+3, 745);
+//  context.drawImage(tile02, (32*19)+3, 745);
 }
 
 function update() {
   draw();
-  requestAnimationFrame(update);
+  myRAF = requestAnimationFrame(update);
 }
 
 document.addEventListener('keydown', event => {
@@ -133,14 +135,14 @@ document.addEventListener('keydown', event => {
 
 // - - RUNNING - - //
 
-loading('Wire Tapping');
+// loading('Wire Tapping');
 // pauseBrowser(1000);
 
 // - - TESTING - - //
 
 drawBoard();
 
-drawTimer();
+drawDSTimer();
 
 update();
 
