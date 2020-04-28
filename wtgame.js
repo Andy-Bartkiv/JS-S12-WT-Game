@@ -26,7 +26,7 @@ let chip03 = document.getElementById('chip-03');
 let chip53 = document.getElementById('chip-53');
 
 
-let timerInput = 1; // time for solving puzzle in min;
+let timerInput = 0.1; // time for solving puzzle in min;
 let timeSec01 = timerInput * 60 * 10;
 
 function drawDSTimer() {
