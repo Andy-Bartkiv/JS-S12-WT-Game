@@ -6,6 +6,10 @@ const timerInput = 1; // time for solving puzzle in min;
 let timeRemain = timerInput * 60 * 1000; // countdown timer value in ms
 let lastTime = 0;   // tech variable for time counter
 let lastDT = 16;    // tech variable for time counter
+const chipTypes = 2;   // Number of Chip Types at board
+const nCP = 10; // number Of Crossed Paths in Between // Total Between-Path num = 24;
+const nSC = 4; // number Of Sealed Chips
+const nHC = nSC * 2; // number Of HIDDEN Chips
 
 // pop-up message Window display
 function popUpWindow(type = 'pause') {
@@ -107,13 +111,12 @@ function createPathSet(w, h) {
     }
   }
   // number Of Crossed Paths in Between // Total Between-Path num = 24;
-  nCP = 12; // (Math.floor(Math.random() * 5)) 
   for (let i = 0; i < nCP; i++) {
     let yCP = (Math.floor(Math.random() * (w)));
     let xCP = getRnd1357(1, h-2);
     if (matrix[xCP][yCP] === 0) {
       matrix[xCP][yCP] = 7;
-    }
+    } else if (matrix[xCP][yCP] == 7) i--;
   }
   
   // Filling direct paths between chips 
@@ -121,31 +124,31 @@ function createPathSet(w, h) {
     if ((i%2 == 0) & (i == 0)) {
       for (let j = 0; j < w; j++) {
         if ((matrix[i+1][j]) == 7) {
-          matrix[i][j] = 40 + (Math.floor(Math.random()*2));
+          matrix[i][j] = 31 + (Math.floor(Math.random()*2));
         } else {
-          matrix[i][j] = 10 + (Math.floor(Math.random()*2));
+          matrix[i][j] = 21 + (Math.floor(Math.random()*2));
         }
       } // END inner j cycle END
 
     } else if ((i%2 == 0) & (i == h-1)) {
       for (let j = 0; j < w; j++) {
         if ((matrix[i-1][j]) == 7) {
-          matrix[i][j] = 50 + (Math.floor(Math.random()*2));
+          matrix[i][j] = 41 + (Math.floor(Math.random()*2));
         } else {
-          matrix[i][j] = 10 + (Math.floor(Math.random()*2));
+          matrix[i][j] = 21 + (Math.floor(Math.random()*2));
         }
       } // END inner j cycle END
     
     } else if (i%2 == 0) {
       for (let j = 0; j < w; j++) {
         if (((matrix[i+1][j])==7) & ((matrix[i-1][j])==7))  {
-          matrix[i][j] = 80 + (Math.floor(Math.random()*2));
+          matrix[i][j] = 51 + (Math.floor(Math.random()*2));
         } else if ((matrix[i+1][j]) == 7) {
-          matrix[i][j] = 40 + (Math.floor(Math.random()*2));
+          matrix[i][j] = 31 + (Math.floor(Math.random()*2));
         } else if ((matrix[i-1][j]) == 7) {
-          matrix[i][j] = 50 + (Math.floor(Math.random()*2));
+          matrix[i][j] = 41 + (Math.floor(Math.random()*2));
         } else {
-          matrix[i][j] = 10 + (Math.floor(Math.random()*2));
+          matrix[i][j] = 21 + (Math.floor(Math.random()*2));
         }
       } // inner j cycle END
 
@@ -161,11 +164,11 @@ function createChipSet(w, h) {
     for (let i = 0; i < h; i++) {
       matrix[i] = []
       for (let j = 0; j < w; j++) {
-        matrix[i][j] = 1100 + (1 + Math.floor(Math.random() * 12));
+        matrix[i][j] = 1100 + (1 + Math.floor(Math.random() * chipTypes));
       }
     }
 
-    let nSC = 4; // (Math.floor(Math.random() * 5)) // number Of Sealed Chips
+   // - - - - - -  - - - - - - - - - - - - number Of Sealed Chips
     for (let i = 0; i < nSC; i++) {
       let xSC = (Math.floor(Math.random() * (w-2)));
       let ySC = (Math.floor(Math.random() * (h-1)));
@@ -173,13 +176,13 @@ function createChipSet(w, h) {
         matrix[xSC][ySC] += 1000;
       }
     }
-    let nHC = nSC * 3; // (Math.floor(Math.random() * 5)) // number Of HIDDEN Chips
+// --------------------------------- // number Of HIDDEN Chips
     for (let i = 0; i < nHC; i++) {
       let xHC = (Math.floor(Math.random() * (w-2)));
       let yHC = (Math.floor(Math.random() * (h-1)));
       if ((xDigit(matrix[xHC][yHC], 0) === 1) & 
           (xDigit(matrix[xHC][yHC], 2) < 5)) {
-        matrix[xHC][yHC] += 50;
+        matrix[xHC][yHC] += 70;
       }
     }
 
@@ -187,6 +190,82 @@ function createChipSet(w, h) {
 
     return matrix;
   }
+
+// creating SIGNAL Matrix
+function createSignalSet(w, h) {
+  const matrix = [];
+  for (let i = 0; i < h; i++) {
+    matrix[i] = []
+    for (let j = 0; j < w; j++) {
+      matrix[i][j] = 0;
+    }
+  }
+
+// INITIAL 5 signals set 5 x (1:0)
+  for (let i = 0; i < h; i++) {
+    if (i%2 == 0) {
+      matrix[i][0] = 1;
+    }
+  }
+
+return matrix;
+}
+
+function calculateSignalSet(matrix) {
+  let h = matrix.length;
+  let w = matrix[0].length;
+  let sigIn = {a:0, z:0};
+  let sigOut = {a:0, z:0};
+
+// CREATE TILE MATRIX
+  let tileH = h / 2;
+  let tileW = w - 1;
+  const tileMatrix = [];
+  for (let i = 0; i < tileH; i++) {
+    tileMatrix[i] = []
+    for (let j = 0; j < tileW; j++) {
+      if (j%2 == 0) {
+        tileMatrix[i][j] = chipSet[i][j/2];
+      } else {
+        tileMatrix[i][j] = pathSet[i*2][(j-1)/2];
+      }
+    }
+  }
+
+  for (let j = 1; j < w; j++) // iterate over columns
+  {
+    for (let i = 0; i < h/2; i++) {
+      sigIn = {a: matrix[i*2][j-1], z: matrix[i*2+1][j-1]}
+      sigOut = calculateTile(tileMatrix[i][j-1], sigIn);
+      matrix[i*2][j] = sigOut.a;
+      matrix[i*2+1][j] = sigOut.z;
+    }
+  }
+return matrix;
+} // END of function calculateSignalSe END
+
+function calculateTile(tile, sigIn) {
+  let sigOut = {a:0, z:0}
+// TILE NORMALIZATION to 2 last digits <= 12
+  if (tile > 1000) tile = tile%1000;
+  tile = tile % 100;
+  if (tile > 70) tile -= 70;
+
+//TILE TYPES 
+if ((tile == 01) || (tile == 21)) {  // No action a=a, z=z
+  sigOut.a = sigIn.a;
+  sigOut.z = sigIn.z;
+} else if ((tile == 02) || (tile == 22)) { // Crossover a=z, z=a
+  sigOut.a = sigIn.z;
+  sigOut.z = sigIn.a;
+} 
+
+  else {                 // a=z=0;
+  sigOut = {a:0, z:0}
+}
+
+return sigOut;
+} // END of function calculateTile
 
 // getting digit position (dig) from a (number)
 function xDigit(number, dig) {
@@ -215,7 +294,7 @@ function moveBlueChip(ox, oy) {
 function switchChips() {
   let tempChip = chipSet[player.pos.y][player.pos.x];
   if ((xDigit(tempChip, 2) >= 5)) {
-    tempChip -= 50;
+    tempChip -= 70;
   }
   chipSet[player.pos.y][player.pos.x] = freeChip + 1100;
   freeChip = tempChip - 1100;
@@ -223,12 +302,12 @@ function switchChips() {
 
 // display layout for values PATH elements
 function drawPathSet(matrix) {
-  context.font = "20px Arial";
+  context.font = "22px Arial";
   context.fillStyle = '#ff0';
   context.textAlign = "center";
-  h = matrix.length;
+  let h = matrix.length;
   for (let i = 0; i < h; i++) {
-      w = matrix[i].length;
+      let w = matrix[i].length;
       for (let j = 0; j < w; j++) {
         context.fillText(matrix[i][j], 175 + 150*j, 100 + 50*i);         
       }
@@ -271,6 +350,20 @@ function drawFreeChip() {
   context.fillText(freeChip, 100 + 150*3, 100 + 100*6);
 }
 
+function drawSignalSet(matrix) {
+  let h = matrix.length;
+  let w = matrix[0].length;
+  context.font = "20px Arial";
+  context.fillStyle = '#f30';
+  context.textAlign = "center";
+  for (let i = 0; i < h; i++) {
+      for (let j = 0; j < w; j++) {
+        context.fillText(matrix[i][j], 55 + 75*j +j%2*10, 80 + 50*i - i%2*10);
+      }
+    }
+}
+
+
 // Main GAME LOOP including countdown time calculation
 function update(time = 0) {
 // CountDown Timer Calculations  
@@ -284,6 +377,10 @@ function update(time = 0) {
     drawPathSet(pathSet);
     drawChipSet(chipSet);
     drawFreeChip();
+    
+    signalSet = calculateSignalSet(signalSet);
+    drawSignalSet(signalSet);
+
     drawNewTimer(timeRemain);
     timeRemain -= deltaTime;
 // console.log('time:', Math.floor(time), 'tR:', Math.floor(timeRemain), 'dt:', Math.floor(deltaTime))
@@ -302,14 +399,13 @@ function update(time = 0) {
 }
 
 const chipSet = createChipSet(7, 5); // Create Initial Chip Set 
-let freeChip = 100 + (Math.floor(Math.random() * 12));
+let freeChip = 101 + (Math.floor(Math.random() * chipTypes));
 const pathSet = createPathSet(6,9); // Create Initial Path Layout
+let signalSet = createSignalSet(14, 10); // Create Signal Matrix
 
 const player = { // position of BLUE CHIP 
   pos: {y: 2, x: 3},
 };
-
-const signal = {a: true, b: false};
 
 // KEYBOARD CONTROLS:
 //                    arrows: to move bleu chip
