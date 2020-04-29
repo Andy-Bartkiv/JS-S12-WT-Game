@@ -2,7 +2,7 @@ const canvas = document.getElementById('wiretap');
 const context = canvas.getContext('2d');
 
 let pause = false;    // State of the game Pause
-const timerInput = 1; // time for solving puzzle in min;
+const timerInput = 10; // time for solving puzzle in min;
 let timeRemain = timerInput * 60 * 1000; // countdown timer value in ms
 let lastTime = 0;   // tech variable for time counter
 let lastDT = 16;    // tech variable for time counter
@@ -87,7 +87,7 @@ function timeFormat(tR) {
   return strTimer;
 }
 
-// new countdown timer display (calculations are made inside function update()
+  // new countdown timer display (calculations are made inside function update()
 function drawNewTimer(tR) {
   strTimer = timeFormat(tR);
   context.fillStyle = '#000';
@@ -101,7 +101,7 @@ function drawNewTimer(tR) {
   context.fillText(strTimer, 1032, 796);
 }
 
-// creating layout for PATH elements
+  // creating layout for PATH elements  6 х 9
 function createPathSet(w, h) {
   const matrix = [];
   for (let i = 0; i < h; i++) {
@@ -124,7 +124,7 @@ function createPathSet(w, h) {
     if ((i%2 == 0) & (i == 0)) {
       for (let j = 0; j < w; j++) {
         if ((matrix[i+1][j]) == 7) {
-          matrix[i][j] = 31 + (Math.floor(Math.random()*2));
+          matrix[i][j] = 31;
         } else {
           matrix[i][j] = 21 + (Math.floor(Math.random()*2));
         }
@@ -133,7 +133,7 @@ function createPathSet(w, h) {
     } else if ((i%2 == 0) & (i == h-1)) {
       for (let j = 0; j < w; j++) {
         if ((matrix[i-1][j]) == 7) {
-          matrix[i][j] = 41 + (Math.floor(Math.random()*2));
+          matrix[i][j] = 41;
         } else {
           matrix[i][j] = 21 + (Math.floor(Math.random()*2));
         }
@@ -142,11 +142,11 @@ function createPathSet(w, h) {
     } else if (i%2 == 0) {
       for (let j = 0; j < w; j++) {
         if (((matrix[i+1][j])==7) & ((matrix[i-1][j])==7))  {
-          matrix[i][j] = 51 + (Math.floor(Math.random()*2));
+          matrix[i][j] = 51;
         } else if ((matrix[i+1][j]) == 7) {
-          matrix[i][j] = 31 + (Math.floor(Math.random()*2));
+          matrix[i][j] = 31;
         } else if ((matrix[i-1][j]) == 7) {
-          matrix[i][j] = 41 + (Math.floor(Math.random()*2));
+          matrix[i][j] = 41;
         } else {
           matrix[i][j] = 21 + (Math.floor(Math.random()*2));
         }
@@ -158,7 +158,7 @@ function createPathSet(w, h) {
   return matrix;
 } // Function END
 
-// creating layout for LOGIC CHIP elements
+  // creating layout for LOGIC CHIP elements 7 х 5
 function createChipSet(w, h) {
     const matrix = [];
     for (let i = 0; i < h; i++) {
@@ -189,9 +189,9 @@ function createChipSet(w, h) {
     matrix[2][3] += 100;    // Starting Chip to be Substituted
 
     return matrix;
-  }
+}
 
-// creating SIGNAL Matrix
+// creating SIGNAL Matrix 10 х 14
 function createSignalSet(w, h) {
   const matrix = [];
   for (let i = 0; i < h; i++) {
@@ -214,37 +214,41 @@ return matrix;
 function calculateSignalSet(matrix) {
   let h = matrix.length;
   let w = matrix[0].length;
-  let sigIn = {a:0, z:0};
-  let sigOut = {a:0, z:0};
+  let sigIn = {a:0, z:0};  // Input Signal
+  let sigOut = {a:0, z:0}; // Output Signal
 
 // CREATE TILE MATRIX
   let tileH = h / 2;
   let tileW = w - 1;
-  const tileMatrix = [];
+// New MATRIX = All LOGIC CHIPs, not all PATHSes; between lines PATHes are not included
+  const tileMatrix = []; 
   for (let i = 0; i < tileH; i++) {
     tileMatrix[i] = []
     for (let j = 0; j < tileW; j++) {
-      if (j%2 == 0) {
-        tileMatrix[i][j] = chipSet[i][j/2];
-      } else {
-        tileMatrix[i][j] = pathSet[i*2][(j-1)/2];
-      }
+      if (j%2 == 0) tileMatrix[i][j] = chipSet[i][j/2];
+      else          tileMatrix[i][j] = pathSet[i*2][(j-1)/2];
     }
   }
 
-  for (let j = 1; j < w; j++) // iterate over columns
-  {
+  for (let j = 1; j < w; j++) { // iterate over columns w=14
     for (let i = 0; i < h/2; i++) {
-      sigIn = {a: matrix[i*2][j-1], z: matrix[i*2+1][j-1]}
-      sigOut = calculateTile(tileMatrix[i][j-1], sigIn);
+      sigIn = {a: matrix[i*2][j-1], z: matrix[i*2+1][j-1]};
+      let signal = {aa: 10, zz: 10};                        // Cross Signal - declaration
+      if (j%2 == 0) {
+        signal.aa = (i > 0) ? matrix[i*2-1][j-1] : 10       // Cross Signal from Top
+        signal.zz = (i < h/2-1) ? matrix[i*2+2][j-1] : 10;  // Cross Signal from Bottom
+      }                             
+      sigOut = calculateTile(tileMatrix[i][j-1], sigIn, signal); // Tile processing th signals set
+
+    // Output Signal is returned back into the MATRIX 
       matrix[i*2][j] = sigOut.a;
       matrix[i*2+1][j] = sigOut.z;
-    }
-  }
+    } // END of i LOOP
+  } // END of j LOOP
 return matrix;
-} // END of function calculateSignalSe END
+} // END of function calculate Signals END
 
-function calculateTile(tile, sigIn) {
+function calculateTile(tile, sigIn, sigX) {
   let sigOut = {a:0, z:0}
 // TILE NORMALIZATION to 2 last digits <= 12
   if (tile > 1000) tile = tile%1000;
@@ -252,16 +256,24 @@ function calculateTile(tile, sigIn) {
   if (tile > 70) tile -= 70;
 
 //TILE TYPES 
-if ((tile == 01) || (tile == 21)) {  // No action a=a, z=z
+if ((tile == 01) || (tile == 21)) {  // No action CHIP or PATH a=a, z=z
   sigOut.a = sigIn.a;
   sigOut.z = sigIn.z;
-} else if ((tile == 02) || (tile == 22)) { // Crossover a=z, z=a
+} else if ((tile == 02) || (tile == 22)) { // Crossover CHIP or PATH a=z, z=a
   sigOut.a = sigIn.z;
   sigOut.z = sigIn.a;
-} 
-
+} else if (tile == 31) {// PATH with signal from bottom line
+  sigOut.a = sigIn.a;
+  sigOut.z = sigX.zz;
+} else if (tile == 41) {// PATH with signal from top line
+  sigOut.a = sigX.aa;
+  sigOut.z = sigIn.z;
+} else if (tile == 51) {// PATH with signal from top AND bottom lines
+  sigOut.a = sigX.aa;
+  sigOut.z = sigX.zz;
+}
   else {                 // a=z=0;
-  sigOut = {a:0, z:0}
+  sigOut = {a:7, z:7}
 }
 
 return sigOut;
