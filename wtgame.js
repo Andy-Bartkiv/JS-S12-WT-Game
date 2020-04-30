@@ -202,9 +202,29 @@ function createChipSet(w, h) {
       }
     }
 
-    matrix[2][3] += 100;    // Starting Chip to be Substituted
+    matrix[player.pos.y][player.pos.x] += 100;    // Starting Blue Chip to be Substituted
 
     return matrix;
+}
+
+function createTargetChipSet() {
+  let matrix = [];
+  let balance = [1, 1, 1, 1, 1, 0, 0, 0, 0, 0];
+  for (let j = 0; j < 10; j++) {
+    let index = Math.floor(Math.random()*balance.length);
+    matrix[j] = parseInt(balance.splice(index, 1));
+  }
+return matrix;
+}
+
+function calculateTagetState(targetMatrix) {
+  let res = targetMatrix;
+  let w = signalSet[0].length;
+  for (let j = 0; j < targetMatrix.length; j++) {
+    if ((signalSet[j][w-1] == 1) && (targetMatrix[j] < 10)) res[j] += 10;
+    else if ((signalSet[j][w-1] == 0) && (targetMatrix[j] >= 10)) res[j] -= 10;
+  }
+return res;
 }
 
 // creating SIGNAL Matrix 10 х 14
@@ -385,6 +405,7 @@ function tileIdent(tile) {
     else if (mIJ == 204) res = chip54;
     else if (mIJ == 205) res = chip55;
     else if (mIJ == 206) res = chip56;
+
     else res = chip50;
   }
   return res;
@@ -402,9 +423,22 @@ function drawChipSet(matrix) {
   for (let i = 0; i < h; i++) {
     w = matrix[i].length;
     for (let j = 0; j < w; j++) {
-      context.drawImage(tileIdent(matrix[i][j]), 170 + bj*j, 66 + bi*i);
+      context.drawImage(tileIdent(matrix[i][j]), 170 + bj*j, 65 + bi*i);
 //      context.fillText(matrix[i][j], aj + bj*j, ai + bi*i);
     }   
+  }
+}
+
+function drawTargetChipSet(matrix) {
+  let tile = chipA0;
+  for (let j = 0; j < 10; j++) {
+    if      (matrix[j] === 0) tile = chipA0;
+    else if (matrix[j] === 10) tile = chipA1;
+    else if (matrix[j] === 1) tile = chipP0;
+    else if (matrix[j] === 11) tile = chipP1; // (matrix[j] == 11)
+
+    context.drawImage(tile, 1066 + (j%2)*96, (j*2+1)*32 + 2); 
+    context.fillText(matrix[j], 1090 + (j%2)*96, (j*2+1)*32 + 40)
   }
 }
 
@@ -453,18 +487,15 @@ function update(time = 0) {
 
     drawBoard();
     
-    context.drawImage(chipA0, 10+(32*3) + 64 * 15, (1*32) + 2);  // ALARM CHIP
-    context.drawImage(chipA1, 10+(32*3) + 64 * 15, (5*32) + 2);  // ALARM CHIP
-  
-    context.drawImage(chipP0, 10+(32*3) + 33*32, (3*32) + 2);  // PHONE CHIP
-    context.drawImage(chipP1, 10+(32*3) + 33*32, (7*32) + 2);  // PHONE CHIP
-
     drawPathSet(pathSet);
     drawChipSet(chipSet);
     drawFreeChip();
     
     signalSet = calculateSignalSet(signalSet);
     drawSignalSet(signalSet);
+
+    targetChipSet = calculateTagetState(targetChipSet);
+    drawTargetChipSet(targetChipSet);
 
     drawNewTimer(timeRemain);
     timeRemain -= deltaTime;
@@ -482,14 +513,15 @@ function update(time = 0) {
     }
 }
 
+const player = {      // position of BLUE CHIP 
+  pos: {y: 2, x: 3},
+};
 let freeChip = 1101 + (Math.floor(Math.random() * chipTypes));
 const chipSet = createChipSet(7, 5); // Create Initial Chip Set 
+let targetChipSet = createTargetChipSet(); // Create Phones and Bells (5 x 5)
 const pathSet = createPathSet(6,9); // Create Initial Path Layout
 let signalSet = createSignalSet(14, 10); // Create Signal Matrix
 
-const player = { // position of BLUE CHIP 
-  pos: {y: 2, x: 3},
-};
 
 // KEYBOARD CONTROLS:
 //                    arrows: to move bleu chip
@@ -522,7 +554,7 @@ document.addEventListener('keydown', event => {
         tt = timeRemain;
     }
   }
- else if ((event.keyCode == 79)) { // key 'o' 79
+ else if ((event.keyCode == 80)) { // key 'p' = 80 unpause
     pause = false;
     update();
     }
