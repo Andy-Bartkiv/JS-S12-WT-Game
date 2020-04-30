@@ -1,54 +1,35 @@
 const canvas = document.getElementById('wiretap');
 const context = canvas.getContext('2d');
-let myRAF; // request Animation Frame var
 
-const boardTop = document.getElementById('board-top');
-const boardBottom = document.getElementById('board-bottom');
+let boardTop = document.getElementById('board-top');
+let boardBottom = document.getElementById('board-bottom');
 
-const path00 = document.getElementById('path-00');
-const path01 = document.getElementById('path-01');
-const path02 = document.getElementById('path-02');
-const path31 = document.getElementById('path-31');
-const path41 = document.getElementById('path-41');
-const path51 = document.getElementById('path-51');
-const path07 = document.getElementById('path-07');
+let path01 = document.getElementById('path-01');
+let path02 = document.getElementById('path-02');
 
-const path23 = document.getElementById('path-02-3');
-
-
-const chipA0 = document.getElementById('chip-A0');
-const chipA1 = document.getElementById('chip-A1');
-const chipP0 = document.getElementById('chip-P0');
-const chipP1 = document.getElementById('chip-P1');
-
-let chipSS = document.getElementById('chip-SS');
+let chipA0 = document.getElementById('chip-A0');
+let chipA1 = document.getElementById('chip-A1');
+let chipP0 = document.getElementById('chip-P0');
+let chipP1 = document.getElementById('chip-P1');
 
 let chip00 = document.getElementById('chip-00');
-let chip01 = document.getElementById('chip-01');
-let chip02 = document.getElementById('chip-02');
-let chip03 = document.getElementById('chip-03');
-let chip04 = document.getElementById('chip-04');
-let chip05 = document.getElementById('chip-05');
-let chip06 = document.getElementById('chip-06');
-
 let chip50 = document.getElementById('chip-50');
+let chip01 = document.getElementById('chip-01');
 let chip51 = document.getElementById('chip-51');
+let chip02 = document.getElementById('chip-02');
 let chip52 = document.getElementById('chip-52');
+let chip03 = document.getElementById('chip-03');
 let chip53 = document.getElementById('chip-53');
-let chip54 = document.getElementById('chip-54');
-let chip55 = document.getElementById('chip-55');
-let chip56 = document.getElementById('chip-56');
 
 let pause = false;    // State of the game Pause
-let lastTime = 0;   // tech variable for time counter
-let lastDT = 16;    // tech variable for time counter
-// GAME DIFFICULTY SETTINGS //
 const timerInput = 10; // time for solving puzzle in min;
 let timeRemain = timerInput * 60 * 1000; // countdown timer value in ms
+let lastTime = 0;   // tech variable for time counter
+let lastDT = 16;    // tech variable for time counter
 const chipTypes = 6;   // Number of Chip Types at board
-const nCP = 4; // number Of Crossed Paths in Between // Total Between-Path num = 24;
-const nSC = 2; // number Of Sealed Chips
-const nHC = 4; // number Of HIDDEN Chips
+const nCP = 10; // number Of Crossed Paths in Between // Total Between-Path num = 24;
+const nSC = 1; // number Of Sealed Chips
+const nHC = 1; // number Of HIDDEN Chips
 //          chipTypes - nCP   - nSC   - nHC
 // Beginner   =  6       4      0       0
 // Easy       =  8      7-8     2       0
@@ -217,11 +198,10 @@ function createSignalSet(w, h) {
     }
   }
 
-// INITIAL 5 signals set (1:0) -> (0:1) -> (1:0) ->
+// INITIAL 5 signals set 5 x (1:0)
   for (let i = 0; i < h; i++) {
     if (i%2 == 0) {
-      if (i%4 == 0) matrix[i][0] = 1;
-      else matrix[i+1][0] = 1;
+      matrix[i][0] = 1;
     }
   }
 
@@ -336,82 +316,62 @@ function switchChips() {
   if ((xDigit(tempChip, 2) >= 5)) {
     tempChip -= 70;
   }
-  chipSet[player.pos.y][player.pos.x] = freeChip + 100;
-  freeChip = tempChip - 100;
+  chipSet[player.pos.y][player.pos.x] = freeChip + 1100;
+  freeChip = tempChip - 1100;
 }
 
 // display layout for values PATH elements
 function drawPathSet(matrix) {
-  context.font = "20px Arial";
-  context.fillStyle = '#ff0';
-  context.textAlign = "center";
-  let h = matrix.length;
-  let tile;
-  for (let i = 0; i < h; i++) {
-    w = matrix[i].length;
-    for (let j = 0; j < w; j++) {
-      if (matrix[i][j] == 21) tile = path01;
-      else if (matrix[i][j] == 22) tile = path02;
-      else if (matrix[i][j] == 31) tile = path31;
-      else if (matrix[i][j] == 41) tile = path41;
-      else if (matrix[i][j] == 51) tile = path51;
-      else if (matrix[i][j] == 07) tile = path07;
-      else tile = path00;
-      if (tile != path00) context.drawImage(tile, 234 + 128 * j, 66 + 64*i);
-//  context.fillText(matrix[i][j], 260 + 128 * j, 105 + 64*i);
-
+    context.font = "20px Arial";
+    context.fillStyle = '#ff0';
+    context.textAlign = "center";
+    h = matrix.length;
+    for (let i = 0; i < h; i++) {
+        w = matrix[i].length;
+        for (let j = 0; j < w; j++) {
+          context.fillText(matrix[i][j], 260 + 127 * j, 105 + 64*i);         
         }
       }
   }
 
-function tileIdent(tile) {
-  let mIJ = tile % 1000;
-  let res = chip00;
-  if (((tile % 100) - (tile % 10)) == 70) {
-    res = (((tile % 1000)-(tile % 100)) == 200 ) ? chip50 : chip00;
-  }
-  else {
-    if      (mIJ == 101) res = chip01;
-    else if (mIJ == 102) res = chip02;
-    else if (mIJ == 103) res = chip03;
-    else if (mIJ == 104) res = chip04;
-    else if (mIJ == 105) res = chip05;
-    else if (mIJ == 106) res = chip06;
-
-    else if (mIJ == 200) res = chip50;
-    else if (mIJ == 201) res = chip51;
-    else if (mIJ == 202) res = chip52;
-    else if (mIJ == 203) res = chip53;
-    else if (mIJ == 204) res = chip54;
-    else if (mIJ == 205) res = chip55;
-    else if (mIJ == 206) res = chip56;
-    else res = chip50;
-  }
-  return res;
-}
-
 // Display layout for values of LOGIC CHIP elements
 function drawChipSet(matrix) {
-  let aj = 194;    let bj = 128;
-  let ai = 105;    let bi = 128;
-  context.font = "20px Arial";
-  context.fillStyle = '#ffd';
-  context.textAlign = "center";
-  let h = matrix.length;
-  let tile = chip00;
-  for (let i = 0; i < h; i++) {
-    w = matrix[i].length;
-    for (let j = 0; j < w; j++) {
-      context.drawImage(tileIdent(matrix[i][j]), 170 + bj*j, 66 + bi*i);
-//      context.fillText(matrix[i][j], aj + bj*j, ai + bi*i);
-    }   
-  }
+    let aj = 194;
+    let bj = 128;
+    let ai = 105;
+    let bi = 128;
+    context.font = "20px Arial";
+    context.fillStyle = '#ffd';
+    context.textAlign = "center";
+    h = matrix.length;
+    for (let i = 0; i < h; i++) {
+        w = matrix[i].length;
+        for (let j = 0; j < w; j++) {
+            if (xDigit(matrix[i][j], 1) == 2) {
+              context.fillStyle = '#00f';
+              if ((xDigit(matrix[i][j], 2) >= 5)) {
+                context.fillText('0000', aj + bj*j, ai + bi*i);
+              } else {
+                context.fillText(matrix[i][j], aj + bj*j, ai + bi*i);
+              }
+              context.fillStyle = '#ffd';
+            } else if ((xDigit(matrix[i][j], 0) == 2)) {
+              context.font = "28px Arial";
+              context.fillText(matrix[i][j], aj + bj*j, ai + bi*i);
+              context.font = "20px Arial";
+            } else if ((xDigit(matrix[i][j], 2) >= 5)) {
+              context.fillText('0000', aj + bj*j, ai + bi*i);
+            } else {
+              context.fillText(matrix[i][j], aj + bj*j, ai + bi*i);
+            }
+            
+        }
+      }
 }
 
-// Display FREE CHIP value & image
+// Display FREE CHIP value
 function drawFreeChip() {
-  context.drawImage(tileIdent(freeChip), 619, 748);
-//    context.fillText(freeChip, 192 + 150*3, 90 + 100*7);
+    context.fillText(freeChip, 192 + 150*3, 90 + 100*7);
   }
 
 function drawSignalSet(matrix) {
@@ -421,7 +381,7 @@ function drawSignalSet(matrix) {
   context.textAlign = "center";
   for (let i = 0; i < h; i++) {
       for (let j = 0; j < w; j++) {
-        context.fillStyle = (matrix[i][j] == 1) ? '#fc0' : '#0f0';
+        context.fillStyle = (matrix[i][j] == 1) ? '#30f' : '#0f0';
         context.fillText(matrix[i][j], 150 + 64*j + j%2*20, 70 + 64*i + i%2*5);
       }
     }
@@ -430,16 +390,27 @@ function drawSignalSet(matrix) {
 function drawBoard() {
     context.drawImage(boardTop, 0, 0);
     context.drawImage(boardBottom, 0, 707);
-    for (let i = 0; i < chipSet.length; i++) {
-      for (let j = 0; j < chipSet[i].length; j++) {
-        if (chipSet[i][j] / 1000 > 2) {
-        context.drawImage(chipSS, 159 + 128*j, 53 + 128*i);
-        }
-      }   
-    }
-//    if (tile / 1000) > 1 {
-    
 }
+
+function drawTiles() {
+    for (j = 0; j < 5; j++) {
+      for (i = 1; i < 14; i += 2) {
+        context.drawImage(chip01, 10+(32*3) + 64 * i, (2*32) + (j*64*2) + 2);
+        if (i < 12) {context.drawImage(path02, 10+(32*3) + 64 * (i+1), (2*33) + (j*64*2))};
+      }
+    }
+  
+    context.drawImage(chip52, 10+(32*3) + 7*64, (2*32) + (2*64*2) + 2);  // BLUE CHIP
+  
+    context.drawImage(chip02, 8+(32*19)+3, 748);  // BOTTOM board CHIP
+  
+    context.drawImage(chipA0, 10+(32*3) + 64 * 15, (1*32) + 2);  // ALARM CHIP
+    context.drawImage(chipA1, 10+(32*3) + 64 * 15, (5*32) + 2);  // ALARM CHIP
+  
+    context.drawImage(chipP0, 10+(32*3) + 33*32, (3*32) + 2);  // PHONE CHIP
+    context.drawImage(chipP1, 10+(32*3) + 33*32, (7*32) + 2);  // PHONE CHIP
+  
+  }
 
 // Main GAME LOOP including countdown time calculation
 function update(time = 0) {
@@ -448,10 +419,9 @@ function update(time = 0) {
   if ((deltaTime > 20) || (deltaTime < 0)) {deltaTime = lastDT}
   lastTime = time;
   lastDT = deltaTime;
+// Drawing Black Board, Path and Chip values, Timer
 
-// Drawing Board, Path and Chip values, Timer
-
-    drawBoard();
+    drawBoard()
     
     context.drawImage(chipA0, 10+(32*3) + 64 * 15, (1*32) + 2);  // ALARM CHIP
     context.drawImage(chipA1, 10+(32*3) + 64 * 15, (5*32) + 2);  // ALARM CHIP
@@ -469,6 +439,7 @@ function update(time = 0) {
     drawNewTimer(timeRemain);
     timeRemain -= deltaTime;
 
+
 // ANIMATION FRAME LOGIC
     if ((timeRemain > 0) && (!pause)) {
       myRAF = requestAnimationFrame(update);
@@ -482,8 +453,8 @@ function update(time = 0) {
     }
 }
 
-let freeChip = 1101 + (Math.floor(Math.random() * chipTypes));
 const chipSet = createChipSet(7, 5); // Create Initial Chip Set 
+let freeChip = 101 + (Math.floor(Math.random() * chipTypes));
 const pathSet = createPathSet(6,9); // Create Initial Path Layout
 let signalSet = createSignalSet(14, 10); // Create Signal Matrix
 

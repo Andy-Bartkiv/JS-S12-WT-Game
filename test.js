@@ -6,10 +6,16 @@ const timerInput = 10; // time for solving puzzle in min;
 let timeRemain = timerInput * 60 * 1000; // countdown timer value in ms
 let lastTime = 0;   // tech variable for time counter
 let lastDT = 16;    // tech variable for time counter
-const chipTypes = 2;   // Number of Chip Types at board
+const chipTypes = 6;   // Number of Chip Types at board
 const nCP = 10; // number Of Crossed Paths in Between // Total Between-Path num = 24;
-const nSC = 4; // number Of Sealed Chips
-const nHC = nSC * 2; // number Of HIDDEN Chips
+const nSC = 1; // number Of Sealed Chips
+const nHC = 1; // number Of HIDDEN Chips
+//          chipTypes - nCP   - nSC   - nHC
+// Beginner   =  6       4      0       0
+// Easy       =  8      7-8     2       0
+// Normal     = 10       8      4       11
+// Hard       = 12    {11-13}   =5=   {12-18}
+
 
 // pop-up message Window display
 function popUpWindow(type = 'pause') {
@@ -91,7 +97,7 @@ function timeFormat(tR) {
 function drawNewTimer(tR) {
   strTimer = timeFormat(tR);
   context.fillStyle = '#000';
-  if (((tR/1000 % 60) < 10) && (parseInt(strTimer[6]) % 10 < 5)) { //// RED LIGHT on Timer
+  if (((tR/1000) < 10) && (parseInt(strTimer[6]) % 10 < 5)) { //// RED LIGHT on Timer
     context.fillStyle = '#b00'
   };
   context.fillRect(1010, 760, 205, 50);
@@ -256,12 +262,23 @@ function calculateTile(tile, sigIn, sigX) {
   if (tile > 70) tile -= 70;
 
 //TILE TYPES 
-if ((tile == 01) || (tile == 21)) {  // No action CHIP or PATH a=a, z=z
-  sigOut.a = sigIn.a;
-  sigOut.z = sigIn.z;
-} else if ((tile == 02) || (tile == 22)) { // Crossover CHIP or PATH a=z, z=a
-  sigOut.a = sigIn.z;
-  sigOut.z = sigIn.a;
+if ((tile == 01) || (tile == 21)) {       // No action CHIP or PATH a=a, z=z
+    sigOut = {a: sigIn.a, z: sigIn.z};
+} else if ((tile == 02) || (tile == 22)) {// Crossover CHIP or PATH a=z, z=a
+    sigOut = {a: sigIn.z, z: sigIn.a};
+} else if (tile == 03) {                  // Top Combiner CHIP
+    sigOut.a = (((sigIn.a + sigIn.z) > 0)) ? 1 : 0;
+    sigOut.z = 0;
+} else if (tile == 04) {                  // Bottom Combiner CHIP
+    sigOut.a = 0;
+    sigOut.z = (((sigIn.a + sigIn.z) > 0)) ? 1 : 0;
+} else if (tile == 05) {                  // Top Splitter CHIP
+  sigOut.a = ((sigIn.a) > 0) ? 1 : 0;
+  sigOut.z = sigOut.a;
+} else if (tile == 06) {                  // Bottom Splitter CHIP
+  sigOut.z = ((sigIn.z) > 0) ? 1 : 0;
+  sigOut.a = sigOut.z;
+
 } else if (tile == 31) {// PATH with signal from bottom line
   sigOut.a = sigIn.a;
   sigOut.z = sigX.zz;
@@ -366,10 +383,10 @@ function drawSignalSet(matrix) {
   let h = matrix.length;
   let w = matrix[0].length;
   context.font = "20px Arial";
-  context.fillStyle = '#f30';
   context.textAlign = "center";
   for (let i = 0; i < h; i++) {
       for (let j = 0; j < w; j++) {
+        context.fillStyle = (matrix[i][j] == 1) ? '#f00' : '#0f0';
         context.fillText(matrix[i][j], 55 + 75*j +j%2*10, 80 + 50*i - i%2*10);
       }
     }
