@@ -30,6 +30,12 @@ let chip03 = document.getElementById('chip-03');
 let chip04 = document.getElementById('chip-04');
 let chip05 = document.getElementById('chip-05');
 let chip06 = document.getElementById('chip-06');
+let chip07 = document.getElementById('chip-07');
+let chip08 = document.getElementById('chip-08');
+let chip09 = document.getElementById('chip-09');
+let chip10 = document.getElementById('chip-10');
+let chip11 = document.getElementById('chip-11');
+let chip12 = document.getElementById('chip-12');
 
 let chip50 = document.getElementById('chip-50');
 let chip51 = document.getElementById('chip-51');
@@ -38,17 +44,23 @@ let chip53 = document.getElementById('chip-53');
 let chip54 = document.getElementById('chip-54');
 let chip55 = document.getElementById('chip-55');
 let chip56 = document.getElementById('chip-56');
+let chip57 = document.getElementById('chip-57');
+let chip58 = document.getElementById('chip-58');
+let chip59 = document.getElementById('chip-59');
+let chip60 = document.getElementById('chip-60');
+let chip61 = document.getElementById('chip-61');
+let chip62 = document.getElementById('chip-62');
 
 let pause = false;    // State of the game Pause
 let lastTime = 0;   // tech variable for time counter
 let lastDT = 16;    // tech variable for time counter
 // GAME DIFFICULTY SETTINGS //
-const timerInput = 10; // time for solving puzzle in min;
+const timerInput = 0.10; // time for solving puzzle in min;
 let timeRemain = timerInput * 60 * 1000; // countdown timer value in ms
-const chipTypes = 6;   // Number of Chip Types at board
+const chipTypes = 12;   // Number of Chip Types at board
 const nCP = 4; // number Of Crossed Paths in Between // Total Between-Path num = 24;
 const nSC = 2; // number Of Sealed Chips
-const nHC = 4; // number Of HIDDEN Chips
+const nHC = 0; // number Of HIDDEN Chips
 //          chipTypes - nCP   - nSC   - nHC
 // Beginner   =  6       4      0       0
 // Easy       =  8      7-8     2       0
@@ -304,12 +316,31 @@ if ((tile == 01) || (tile == 21)) {       // No action CHIP or PATH a=a, z=z
     sigOut.a = 0;
     sigOut.z = (((sigIn.a + sigIn.z) > 0)) ? 1 : 0;
 } else if (tile == 05) {                  // Top Splitter CHIP
-  sigOut.a = ((sigIn.a) > 0) ? 1 : 0;
+  sigOut.a = ((sigIn.a) == 1) ? 1 : 0;
   sigOut.z = sigOut.a;
 } else if (tile == 06) {                  // Bottom Splitter CHIP
-  sigOut.z = ((sigIn.z) > 0) ? 1 : 0;
+  sigOut.z = ((sigIn.z) == 1) ? 1 : 0;
   sigOut.a = sigOut.z;
+} else if (tile == 07) {                  // Top Inverter CHIP
+  sigOut.a = ((sigIn.a) == 1) ? 0 : 1;
+  sigOut.z = sigIn.z;
+} else if (tile == 08) {                  // Bottom Inverter CHIP
+  sigOut.a = sigIn.a;
+  sigOut.z = ((sigIn.z) == 1) ? 0 : 1;
+} else if (tile == 09) {                  // Double Inverter CHIP
+  sigOut.a = ((sigIn.a) == 1) ? 0 : 1;
+  sigOut.z = ((sigIn.z) == 1) ? 0 : 1;
+} else if (tile == 10) {                  // Top Crossover Inverter CHIP
+  sigOut.a = sigIn.z;
+  sigOut.z = ((sigIn.a) == 1) ? 0 : 1;
+} else if (tile == 11) {                  // Bottom Crossover Inverter CHIP
+  sigOut.a = ((sigIn.z) == 1) ? 0 : 1;
+  sigOut.z = sigIn.a;
+} else if (tile == 12) {                  // Double Crossover Inverter CHIP
+  sigOut.a = ((sigIn.z) == 1) ? 0 : 1;
+  sigOut.z = ((sigIn.a) == 1) ? 0 : 1;
 
+// PATH Tiles LOGIC
 } else if (tile == 31) {// PATH with signal from bottom line
   sigOut.a = sigIn.a;
   sigOut.z = sigX.zz;
@@ -320,7 +351,7 @@ if ((tile == 01) || (tile == 21)) {       // No action CHIP or PATH a=a, z=z
   sigOut.a = sigX.aa;
   sigOut.z = sigX.zz;
 }
-  else {                 // a=z=0;
+  else {                 // a=z=7 For Debug Purposes only;
   sigOut = {a:7, z:7}
 }
 
@@ -397,6 +428,12 @@ function tileIdent(tile) {
     else if (mIJ == 104) res = chip04;
     else if (mIJ == 105) res = chip05;
     else if (mIJ == 106) res = chip06;
+    else if (mIJ == 107) res = chip07;
+    else if (mIJ == 108) res = chip08;
+    else if (mIJ == 109) res = chip09;
+    else if (mIJ == 110) res = chip10;
+    else if (mIJ == 111) res = chip11;
+    else if (mIJ == 112) res = chip12;
 
     else if (mIJ == 200) res = chip50;
     else if (mIJ == 201) res = chip51;
@@ -405,6 +442,12 @@ function tileIdent(tile) {
     else if (mIJ == 204) res = chip54;
     else if (mIJ == 205) res = chip55;
     else if (mIJ == 206) res = chip56;
+    else if (mIJ == 207) res = chip57;
+    else if (mIJ == 208) res = chip58;
+    else if (mIJ == 209) res = chip59;
+    else if (mIJ == 210) res = chip60;
+    else if (mIJ == 211) res = chip61;
+    else if (mIJ == 212) res = chip62;
 
     else res = chip50;
   }
@@ -554,10 +597,14 @@ document.addEventListener('keydown', event => {
         tt = timeRemain;
     }
   }
- else if ((event.keyCode == 80)) { // key 'p' = 80 unpause
+  else if ((event.keyCode == 80)) { // key 'p' = 80 unpause
     pause = false;
     update();
     }
+  else if ((event.keyCode == 32)) { // key 'Space' to continue
+  pause = false;
+  update();
+  }
 }); 
 
 // MAIN GAME LOOP Init
