@@ -55,10 +55,10 @@ let pause = false;    // State of the game Pause
 let lastTime = 0;   // tech variable for time counter
 let lastDT = 16;    // tech variable for time counter
 // GAME DIFFICULTY SETTINGS //
-const timerInput = 0.10; // time for solving puzzle in min;
+const timerInput = 10; // time for solving puzzle in min;
 let timeRemain = timerInput * 60 * 1000; // countdown timer value in ms
 const chipTypes = 12;   // Number of Chip Types at board
-const nCP = 4; // number Of Crossed Paths in Between // Total Between-Path num = 24;
+const nCP = 6; // number Of Crossed Paths in Between // Total Between-Path num = 24;
 const nSC = 2; // number Of Sealed Chips
 const nHC = 0; // number Of HIDDEN Chips
 //          chipTypes - nCP   - nSC   - nHC
@@ -122,11 +122,11 @@ function drawNewTimer(tR) {
   if (((tR/1000) < 10) && (parseInt(strTimer[6]) % 10 < 5)) { //// RED LIGHT on Timer
     context.fillStyle = '#b00'
   };
-  context.fillRect(1010, 760, 205, 50);
+  context.fillRect(1026, 734, 200, 50);
   context.font = "36px Consolas";
   context.fillStyle = '#0f0';
   context.textAlign = "start";
-  context.fillText(strTimer, 1032, 796);
+  context.fillText(strTimer, 1046, 770);
 }
 
   // creating layout for PATH elements  6 х 9
@@ -192,8 +192,24 @@ function createChipSet(w, h) {
     for (let i = 0; i < h; i++) {
       matrix[i] = []
       for (let j = 0; j < w; j++) {
-        matrix[i][j] = 1100 + (1 + Math.floor(Math.random() * chipTypes));
+        if (chipTypes < 7) matrix[i][j] = 1101 + Math.floor(Math.random() * chipTypes);
+        else {
+          let rnd = 1101 + Math.floor(Math.random()*(chipTypes - 2));
+          matrix[i][j] = (rnd < 1103) ? rnd : rnd + 2;
+        }
       }
+    }
+  // Correcting last column to remove combiners and splitters
+    for (let i = 0; i < h; i++) {
+      if ((matrix[i][w-1] > 1102) && (matrix[i][w-1] < 1107)) {
+        matrix[i][w-1] = 1101 + Math.floor(Math.random() * 2);
+
+      }
+    }
+   // removing combiners in case typeChips > 6
+   if (chipTypes > 6)
+    {
+
     }
 
    // - - - - - -  - - - - - - - - - - - - number Of Sealed Chips
@@ -217,6 +233,43 @@ function createChipSet(w, h) {
     matrix[player.pos.y][player.pos.x] += 100;    // Starting Blue Chip to be Substituted
 
     return matrix;
+}
+
+function correctChipSet() {
+  let matrix = chipSet;
+  let outSignals = 0;
+  let signals = calculateSignalSet(signalSet);
+  let w = signals[0].length;
+  let wM = chipSet[0].length;
+
+  for (let j=0; j<matrix.length; j++) {
+    outSignals = 0;
+    signals = calculateSignalSet(signalSet);
+    for (let i = 0; i < signals.length; i++)
+      outSignals += signals[i][w-1];
+    if (outSignals > 0) {
+
+      if (chipTypes<7) {
+        if ((signals[j*2][0] == 1) && (signals[j*2+1][0] == 0)) 
+            chipSet[j][0] = 1106;
+        else if ((signals[j*2][0] == 0) && (signals[j*2+1][0] == 1)) 
+            chipSet[j][0] = 1105;
+      } 
+      else { // ChipTypes >= 7
+
+        if ((signals[j*2][w-2] == 1) && (signals[j*2+1][w-2] == 0)) 
+            chipSet[j][wM-1] = 1107;
+        else if ((signals[j*2][w-2] == 0) && (signals[j*2+1][w-2] == 1)) 
+            chipSet[j][wM-1] = 1108;
+        else if ((signals[j*2][w-2] == 1) && (signals[j*2+1][w-2] == 1)) 
+            chipSet[j][wM-1] = 1109;
+        else 
+            chipSet[j][wM-1] = 1101 + Math.floor(Math.random()*2);
+        }
+    }
+    else break;
+  }
+  return matrix;
 }
 
 function createTargetChipSet() {
@@ -408,7 +461,7 @@ function drawPathSet(matrix) {
       else if (matrix[i][j] == 51) tile = path51;
       else if (matrix[i][j] == 07) tile = path07;
       else tile = path00;
-      if (tile != path00) context.drawImage(tile, 234 + 128 * j, 66 + 64*i);
+      if (tile != path00) context.drawImage(tile, 234 + 128 * j, 51 + 64*i);
 //  context.fillText(matrix[i][j], 260 + 128 * j, 105 + 64*i);
 
         }
@@ -466,7 +519,7 @@ function drawChipSet(matrix) {
   for (let i = 0; i < h; i++) {
     w = matrix[i].length;
     for (let j = 0; j < w; j++) {
-      context.drawImage(tileIdent(matrix[i][j]), 170 + bj*j, 65 + bi*i);
+      context.drawImage(tileIdent(matrix[i][j]), 170 + bj*j, 50 + bi*i);
 //      context.fillText(matrix[i][j], aj + bj*j, ai + bi*i);
     }   
   }
@@ -480,14 +533,14 @@ function drawTargetChipSet(matrix) {
     else if (matrix[j] === 1) tile = chipP0;
     else if (matrix[j] === 11) tile = chipP1; // (matrix[j] == 11)
 
-    context.drawImage(tile, 1066 + (j%2)*96, (j*2+1)*32 + 2); 
-    context.fillText(matrix[j], 1090 + (j%2)*96, (j*2+1)*32 + 40)
+    context.drawImage(tile, 1066 + (j%2)*96, (j*2+1)*32 - 13); 
+//    context.fillText(matrix[j], 1090 + (j%2)*96, (j*2+1)*32 + 25)
   }
 }
 
 // Display FREE CHIP value & image
 function drawFreeChip() {
-  context.drawImage(tileIdent(freeChip), 619, 748);
+  context.drawImage(tileIdent(freeChip), 619, 722);
 //    context.fillText(freeChip, 192 + 150*3, 90 + 100*7);
   }
 
@@ -498,24 +551,23 @@ function drawSignalSet(matrix) {
   context.textAlign = "center";
   for (let i = 0; i < h; i++) {
       for (let j = 0; j < w; j++) {
-        context.fillStyle = (matrix[i][j] == 1) ? '#fc0' : '#0f0';
-        context.fillText(matrix[i][j], 150 + 64*j + j%2*20, 70 + 64*i + i%2*5);
+        context.fillStyle = (matrix[i][j] == 1) ? '#f00' : '#0f0';
+        context.fillRect(146 + 64*j + j%2*20, 50 + 64*i - i%2*10, 10, 12)
+ //       context.fillText(matrix[i][j], 150 + 64*j + j%2*20, 55 + 64*i + i%2*5);
       }
     }
 }
 
 function drawBoard() {
     context.drawImage(boardTop, 0, 0);
-    context.drawImage(boardBottom, 0, 707);
+    context.drawImage(boardBottom, 0, 692);
     for (let i = 0; i < chipSet.length; i++) {
       for (let j = 0; j < chipSet[i].length; j++) {
         if (chipSet[i][j] / 1000 > 2) {
-        context.drawImage(chipSS, 159 + 128*j, 53 + 128*i);
+        context.drawImage(chipSS, 159 + 128*j, 38 + 128*i);
         }
       }   
-    }
-//    if (tile / 1000) > 1 {
-    
+    }   
 }
 
 // Main GAME LOOP including countdown time calculation
@@ -555,16 +607,18 @@ function update(time = 0) {
         popUpWindow('time-out');
     }
 }
-
+// Creating GAME BOARD LAYOUT 
 const player = {      // position of BLUE CHIP 
   pos: {y: 2, x: 3},
 };
-let freeChip = 1101 + (Math.floor(Math.random() * chipTypes));
-const chipSet = createChipSet(7, 5); // Create Initial Chip Set 
+let freeChip = 1101 + (Math.floor(Math.random() * chipTypes)); // FREE CHIP type
+// if ((freeChip > 1102) && (freeChip < 1107))  freeChip = 1101 + Math.floor(Math.random()*2); // FREE CHIP type correction
+
+let chipSet = createChipSet(7, 5); // Create Initial Chip Set 
 let targetChipSet = createTargetChipSet(); // Create Phones and Bells (5 x 5)
 const pathSet = createPathSet(6,9); // Create Initial Path Layout
 let signalSet = createSignalSet(14, 10); // Create Signal Matrix
-
+chipSet = correctChipSet();
 
 // KEYBOARD CONTROLS:
 //                    arrows: to move bleu chip
