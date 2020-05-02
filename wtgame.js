@@ -235,6 +235,18 @@ function createChipSet(w, h) {
     return matrix;
 }
 
+function createFreeChip() {
+  let res = 0;
+  1101 + (Math.floor(Math.random() * chipTypes));
+  if (chipTypes < 7) res = 1101 + Math.floor(Math.random() * chipTypes);
+  else {
+    let rnd = 1101 + Math.floor(Math.random()*(chipTypes - 2));
+    res = (rnd < 1103) ? rnd : rnd + 2;
+  } 
+return res;
+}
+
+// validation of LOGIC CHIP SET layout
 function correctChipSet() {
   let matrix = chipSet;
   let outSignals = 0;
@@ -250,10 +262,19 @@ function correctChipSet() {
     if (outSignals > 0) {
 
       if (chipTypes<7) {
-        if ((signals[j*2][0] == 1) && (signals[j*2+1][0] == 0)) 
-            chipSet[j][0] = 1106;
-        else if ((signals[j*2][0] == 0) && (signals[j*2+1][0] == 1)) 
-            chipSet[j][0] = 1105;
+        if ((signals[j*2][w-2] == 1) && (signals[j*2+1][w-2] == 0)) 
+            chipSet[j][wM-1] = 1107;
+        else if ((signals[j*2][w-2] == 0) && (signals[j*2+1][w-2] == 1)) 
+            chipSet[j][wM-1] = 1108;
+        else if ((signals[j*2][w-2] == 1) && (signals[j*2+1][w-2] == 1)) 
+            chipSet[j][wM-1] = 1109;
+//        else 
+//            chipSet[j][wM-1] = 1101 + Math.floor(Math.random()*2);
+
+//      if ((signals[j*2][0] == 1) && (signals[j*2+1][0] == 0)) 
+//            chipSet[j][0] = 1106;
+//      else if ((signals[j*2][0] == 0) && (signals[j*2+1][0] == 1)) 
+//            chipSet[j][0] = 1105;
       } 
       else { // ChipTypes >= 7
 
@@ -272,6 +293,7 @@ function correctChipSet() {
   return matrix;
 }
 
+// creating TARGET CHIPs SET layout (5 x 5)
 function createTargetChipSet() {
   let matrix = [];
   let balance = [1, 1, 1, 1, 1, 0, 0, 0, 0, 0];
@@ -282,6 +304,7 @@ function createTargetChipSet() {
 return matrix;
 }
 
+// calculation of TARGET CHIPS State, based on Signal Set
 function calculateTagetState(targetMatrix) {
   let res = targetMatrix;
   let w = signalSet[0].length;
@@ -313,6 +336,7 @@ function createSignalSet(w, h) {
 return matrix;
 }
 
+// calculation of Signal Map based on Chip and Path Layout.
 function calculateSignalSet(matrix) {
   let h = matrix.length;
   let w = matrix[0].length;
@@ -468,6 +492,7 @@ function drawPathSet(matrix) {
       }
   }
 
+// Tile identification function
 function tileIdent(tile) {
   let mIJ = tile % 1000;
   let res = chip00;
@@ -544,6 +569,7 @@ function drawFreeChip() {
 //    context.fillText(freeChip, 192 + 150*3, 90 + 100*7);
   }
 
+// Display Signal Set layout based on calculated signal state
 function drawSignalSet(matrix) {
   let h = matrix.length;
   let w = matrix[0].length;
@@ -558,6 +584,7 @@ function drawSignalSet(matrix) {
     }
 }
 
+// Draw board: boarTOP, boardBOTTOM, chipSS
 function drawBoard() {
     context.drawImage(boardTop, 0, 0);
     context.drawImage(boardBottom, 0, 692);
@@ -611,8 +638,7 @@ function update(time = 0) {
 const player = {      // position of BLUE CHIP 
   pos: {y: 2, x: 3},
 };
-let freeChip = 1101 + (Math.floor(Math.random() * chipTypes)); // FREE CHIP type
-// if ((freeChip > 1102) && (freeChip < 1107))  freeChip = 1101 + Math.floor(Math.random()*2); // FREE CHIP type correction
+let freeChip = createFreeChip();
 
 let chipSet = createChipSet(7, 5); // Create Initial Chip Set 
 let targetChipSet = createTargetChipSet(); // Create Phones and Bells (5 x 5)
