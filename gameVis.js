@@ -2,8 +2,9 @@ const canvas = document.getElementById('wiretap');
 const context = canvas.getContext('2d');
 let myRAF; // request Animation Frame var
 
-const boardTop = document.getElementById('board-top');
-const boardBottom = document.getElementById('board-bottom');
+const board = document.getElementById('board');
+// const boardTop = document.getElementById('board-top');
+// const boardBottom = document.getElementById('board-bottom');
 
 const path00 = document.getElementById('path-00');
 const path01 = document.getElementById('path-01');
@@ -54,6 +55,7 @@ let chip62 = document.getElementById('chip-62');
 let pause = false;    // State of the game Pause
 let lastTime = 0;   // tech variable for time counter
 let lastDT = 16;    // tech variable for time counter
+let animationSpeed = 100 // cord Animation Speed for in ms 
 // GAME DIFFICULTY SETTINGS //
 const timerInput = 10; // time for solving puzzle in min;
 let timeRemain = timerInput * 60 * 1000; // countdown timer value in ms
@@ -440,6 +442,7 @@ function xDigit(number, dig) {
   let z = String(number);
   return parseInt(z[dig]);
 }
+
 // getting Random UnEven number from a range
 function getRnd1357(min, max) {
 	let res, rnd = 0;
@@ -478,19 +481,19 @@ function drawPathSet(matrix) {
   for (let i = 0; i < h; i++) {
     w = matrix[i].length;
     for (let j = 0; j < w; j++) {
-      if (matrix[i][j] == 21) tile = path01;
-      else if (matrix[i][j] == 22) tile = path02;
-      else if (matrix[i][j] == 31) tile = path31;
-      else if (matrix[i][j] == 41) tile = path41;
-      else if (matrix[i][j] == 51) tile = path51;
-      else if (matrix[i][j] == 07) tile = path07;
-      else tile = path00;
-      if (tile != path00) context.drawImage(tile, 234 + 128 * j, 51 + 64*i);
-//  context.fillText(matrix[i][j], 260 + 128 * j, 105 + 64*i);
+    //   if (matrix[i][j] == 21) tile = path01;
+    //   else if (matrix[i][j] == 22) tile = path02;
+    //   else if (matrix[i][j] == 31) tile = path31;
+    //   else if (matrix[i][j] == 41) tile = path41;
+    //   else if (matrix[i][j] == 51) tile = path51;
+    //   else if (matrix[i][j] == 07) tile = path07;
+    //   else tile = path00;
+    //   if (tile != path00) context.drawImage(tile, 234 + 128 * j, 51 + 64*i);
+  context.fillText(matrix[i][j], 260 + 128 * j, 90 + 64*i);
 
-        }
-      }
+    }
   }
+}
 
 // Tile identification function
 function tileIdent(tile) {
@@ -579,15 +582,73 @@ function drawSignalSet(matrix) {
       for (let j = 0; j < w; j++) {
         context.fillStyle = (matrix[i][j] == 1) ? '#f00' : '#0f0';
         context.fillRect(146 + 64*j + j%2*20, 50 + 64*i - i%2*10, 10, 12)
- //       context.fillText(matrix[i][j], 150 + 64*j + j%2*20, 55 + 64*i + i%2*5);
+//        context.fillText(matrix[i][j], 150 + 64*j + j%2*20, 55 + 64*i + i%2*5);
       }
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////
+function drawSignalCord() {
+    let cordState = {a:0, z:0};
+    let h = signalSet.length;
+    let w = signalSet[0].length;
+
+// Animation input Half-long cords
+    for (let i = 0; i < h; i += 2) {
+        if (signalSet[i][0] == 1) cordState.a = 1; else cordState.a = 0;
+        if (signalSet[i+1][0] == 1) cordState.z = 1; else cordState.z = 0;
+        drawCord(cordHL, {x:82, y:65 + i*64}, cordState.a);
+        drawCord(cordHL, {x:82, y:97 + i*64}, cordState.z);
+    }
+// Animation Board cords
+    for (let j = 1; j < w-2; j += 2) {
+        for (let i = 0; i < h; i += 2) {
+            if (signalSet[i][j] == 1) cordState.a = 1; else cordState.a = 0;
+            if (signalSet[i+1][j] == 1) cordState.z = 1; else cordState.z = 0;
+
+            if (pathSet[i][(j-1)/2] == 21) {
+                drawCord(cordD, {x:162+j*64, y:65 + i*64}, cordState.a);
+                drawCord(cordD, {x:162+j*64, y:97 + i*64}, cordState.z);
+            } else if (pathSet[i][(j-1)/2] == 22) {
+                drawCord(cordXDn, {x:162+j*64, y:65 + i*64}, cordState.a);
+                drawCord(cordXUp, {x:162+j*64, y:97 + i*64}, cordState.z);
+            } else if (pathSet[i][(j-1)/2] == 31) {
+                drawCord(cordD, {x:162+j*64, y:65 + i*64}, cordState.a);
+                drawCord(cordX2D, {x:162+j*64, y:97 + i*64}, cordState.z);
+            } else if (pathSet[i][(j-1)/2] == 41) {
+                drawCord(cordX2U, {x:162+j*64, y:65 + i*64}, cordState.a);
+                drawCord(cordD, {x:162+j*64, y:97 + i*64}, cordState.z);
+            } else if (pathSet[i][(j-1)/2] == 51) {
+                drawCord(cordX2U, {x:162+j*64, y:65 + i*64}, cordState.a);
+                drawCord(cordX2D, {x:162+j*64, y:97 + i*64}, cordState.z);
+            }
+        // BOTTOM Cord Lines Animation - attaching to pins of card socket 
+            if ((i == h-2) && (j !== 1)) {
+                drawCord(cordXR, {x:178+j*64, y:613}, cordState.z);
+                if (pathSet[i][(j-1)/2] !== 22) cordState.a = cordState.z;
+                drawCord(cordXI, {x:210+j*64, y:613}, cordState.a);
+            }
+        }
+    }
+// Animatin cords to Target Chip Sets;
+    for (let i = 0; i < h; i++) {
+        if (signalSet[i][signalSet[0].length-1] == 1) cordState = 1;
+        else cordState = 0;
+
+        if (i%2 == 0) drawCord(cordD, {x:994, y:65 + i*64}, cordState);
+        else drawCord(cordL, {x:994, y:97 + (i-1)*64}, cordState);
+    }
+} // END of function
+
+function drawBoardCord() {
+                         ///// EMPTY 
+}
+
 // Draw board: boarTOP, boardBOTTOM, chipSS
 function drawBoard() {
-    context.drawImage(boardTop, 0, 0);
-    context.drawImage(boardBottom, 0, 692);
+    context.drawImage(board, 0, 0);
+//    context.drawImage(boardTop, 0, 0);
+//    context.drawImage(boardBottom, 0, 692);
     for (let i = 0; i < chipSet.length; i++) {
       for (let j = 0; j < chipSet[i].length; j++) {
         if (chipSet[i][j] / 1000 > 2) {
@@ -597,6 +658,100 @@ function drawBoard() {
     }   
 }
 
+/////////// CORD ANIMATION /////////////////
+
+let cordD = createCord('direct');
+let cordL = createCord('long');
+let cordXDn = createCord('cross-down');
+let cordXUp = createCord('cross-up');
+let cordX2D = createCord('cross-2down');
+let cordX2U = createCord('cross-2up');
+let cordXR = createCord('cross-R');
+let cordXI = createCord('cross-I');
+let cordHL = createCord('half-long');
+let cord5v = createCord('board5v');
+let cordGnd = createCord('boardGnd');
+
+
+function drawCord(cordPath, cordStart = {x:0, y:0}, bool) {
+// 0 1 _ _ 4 5 _ _ 8 9 __ __ 12 13 __ __ 
+// _ _ 2 3 _ _ 6 7 _ _ 10 11 __ __ 14 15
+    cordPath.forEach((element, i) => {
+        if (bool == 0)                     // green cord #47E452
+            context.fillStyle = '#47E452';
+        else                              // red #FF7252 / white #E9FFEE cord
+            context.fillStyle = ((((i-aP)%4) == 0)||(((i-1-aP)%4)==0)) ? 'red' : '#E9FFEE'; 
+        if (element[0] !== 1300)
+            context.fillRect(cordStart.x + 4*element[0], cordStart.y + 4*element[1], 4, 4);
+    }); 
+}
+
+function createCord(cordType) {
+    let matrix = []
+    if (cordType == 'direct') 
+        for (let i=0; i<16; i++) matrix[i] = [i, 0];
+    else if (cordType == 'long')
+        for (let i=0; i<40; i++) matrix[i] = [i, 0];
+    else if (cordType == 'cross-down') {
+        for (let i=0; i<4; i++) matrix[i] = [i, 0];
+        for (let i=4; i<12; i++) matrix[i] = [i, i-4];
+        for (let i=12; i<16; i++) matrix[i] = [i, 8];
+    } else if (cordType == 'cross-up') {
+        for (let i=0; i<4; i++) matrix[i] = [i, 0];
+        for (let i=4; i<12; i++) matrix[i] = ((i<7)||(i>9)) ? [i, 4-i] : [1300, 900];
+        for (let i=12; i<16; i++) matrix[i] = [i, -8];
+    } else if (cordType == 'cross-2down') {
+        for (let i=0; i<4; i++) matrix[i] = [i, 0];
+        for (let j=4; j<12; j++) matrix[j] = [4, j-4];
+        for (let i=12; i<20; i++) matrix[i] = [i-8, i-4];
+        for (let j=20; j<28; j++) matrix[j] = [12, j-4];
+        for (let i=28; i<32; i++) matrix[i] = [i-16, 24];
+    } else if (cordType == 'cross-2up') {
+        for (let i=0; i<4; i++) matrix[i] = [i, 0];
+        for (let j=4; j<12; j++) matrix[j] = [4, 4-j];
+        for (let i=12; i<20; i++) matrix[i] = ((i<15)||(i>17)) ? [i-8, 4-i] : [1300, 900];
+        for (let j=20; j<28; j++) matrix[j] = [12, 4-j];
+        for (let i=28; i<32; i++) matrix[i] = [i-16, -24];
+
+    } else if (cordType == 'cross-I') {
+        for (let j=0; j<20; j++) matrix[j] = [0, j];
+    } else if (cordType == 'cross-R') {
+        for (let j=0; j<7; j++) matrix[j] = [0, j];
+        for (let i=7; i<16; i++) matrix[i] = [7-i, 7];
+        for (let j=16; j<28; j++) matrix[j] = [-8, j-8];
+    } else if (cordType == 'half-long') {
+        for (let i=0; i<19; i++) matrix[i] = [i+1, 0];
+    } else if (cordType == 'board5v') {
+        for (let i=0; i<4; i++) matrix[i] = [0, 5-i]; // 4  up
+        for (let i=4; i<52; i++) matrix[i] = [4-i, 1]; // 48 left 
+        for (let j=52; j<68; j++) matrix[j] = [-48, 53-j]; // 16 up
+        for (let i=68; i<76; i++) matrix[i] = ((i<71)||(i>73)) ? [-116 + i, 53-i] : [1300, 900]; // 8 !!!
+        for (let j=76; j<100; j++) matrix[j] = [-48+8, 53-j]; // 24 up 
+        for (let i=100; i<108; i++) matrix[i] = [60 - i, 53-i]; // 8  NW
+        for (let j=108; j<132; j++) matrix[j] = [-48, 53-j]; // 24 up 
+        for (let i=132; i<140; i++) matrix[i] = ((i<135)||(i>137)) ? [-180 + i, 53-i] : [1300, 900]; // 8
+        for (let j=140; j<164; j++) matrix[j] = [-48+8, 53-j]; // 24 up 
+        for (let i=164; i<172; i++) matrix[i] = [124 - i, 53-i]; // 8  NW
+        for (let j=172; j<204; j++) matrix[j] = [-48, 53-j]; // 32 up
+        for (let i=204; i<213; i++) matrix[i] = [-252+i, -151]; // 8 right
+    } else if (cordType == 'boardGnd') {
+        for (let i=0; i<12; i++) matrix[i] = [0, 5-i]; // 12  up
+        for (let i=12; i<60; i++) matrix[i] = [12-i, -7]; // 48 left 
+        for (let j=60; j<68; j++) matrix[j] = [-48, 53-j]; // 8 up
+        for (let i=68; i<76; i++) matrix[i] = [20-i, 53-i]; // 8  NW
+        for (let j=76; j<100; j++) matrix[j] = [-56, 53-j]; // 24 up 
+        for (let i=100; i<108; i++) matrix[i] = ((i<103)||(i>105)) ? [-156+i, 53-i] : [1300, 900]; // 8 !!!
+        for (let j=108; j<132; j++) matrix[j] = [-48, 53-j]; // 24 up 
+
+
+
+
+
+    }
+    return matrix;
+}
+//////// END of CORD ANIMATION ////////////////////////////
+
 // Main GAME LOOP including countdown time calculation
 function update(time = 0) {
 // CountDown Timer Calculations  
@@ -604,23 +759,58 @@ function update(time = 0) {
   if ((deltaTime > 20) || (deltaTime < 0)) {deltaTime = lastDT}
   lastTime = time;
   lastDT = deltaTime;
+  animationCounter += deltaTime; // cord animation 
+  if (animationCounter > animationSpeed) {
+      aP += 1;
+      animationCounter = 0;
+  }
+  if (aP>3) aP = 0;
 
-// Drawing Board, Path and Chip values, Timer
-
+// Drawing Board, Pathes, Chips, Signals, Timer
     drawBoard();
     
-    drawPathSet(pathSet);
     drawChipSet(chipSet);
     drawFreeChip();
-    
-    signalSet = calculateSignalSet(signalSet);
-    drawSignalSet(signalSet);
+    signalSet = calculateSignalSet(signalSet); // recalculation state of Signals
+//    drawSignalSet(signalSet);
+//    drawPathSet(pathSet);
 
+
+
+
+
+
+    drawCord(cord5v, {x:242, y:669}, 0);
+    drawCord(cordGnd, {x:274, y:669}, 1);
+
+
+
+
+
+
+
+
+    drawSignalCord();
+
+// recalculation state of Target Chips
     targetChipSet = calculateTagetState(targetChipSet);
     drawTargetChipSet(targetChipSet);
 
     drawNewTimer(timeRemain);
     timeRemain -= deltaTime;
+
+///////////  POP UP WINDOWS ON EVENTS
+
+    // if (targetChipSet.some(targetChip => targetChip == 10)) {
+    //     timeRemain = 0;
+    //     cancelAnimationFrame(myRAF);
+    //     popUpWindow('alarm');
+    // }
+
+    // if (targetChipSet.some(targetChip => targetChip == 11)) {
+    //     popUpWindow('clue');
+    //     pause = true;
+    // }
 
 // ANIMATION FRAME LOGIC
     if ((timeRemain > 0) && (!pause)) {
@@ -638,8 +828,10 @@ function update(time = 0) {
 const player = {      // position of BLUE CHIP 
   pos: {y: 2, x: 3},
 };
-let freeChip = createFreeChip();
+let animationCounter = 0;
+let aP = 0;  // animathion Phase [0, 1, 2, 3]
 
+let freeChip = createFreeChip();
 let chipSet = createChipSet(7, 5); // Create Initial Chip Set 
 let targetChipSet = createTargetChipSet(); // Create Phones and Bells (5 x 5)
 const pathSet = createPathSet(6,9); // Create Initial Path Layout
@@ -649,7 +841,7 @@ chipSet = correctChipSet();
 // KEYBOARD CONTROLS:
 //                    arrows: to move bleu chip
 //                    space : to switch Blue and Free Chips
-//                 'p' & 'o': to pause and unpause game  
+//                    'p': to pause and unpause game  
 document.addEventListener('keydown', event => {
   if (!pause) {
     if (event.keyCode === 38) {       // key arrow up
@@ -674,7 +866,6 @@ document.addEventListener('keydown', event => {
         }
     } else if (event.keyCode == 80) { // key 'p' 80
         pause = true;
-        tt = timeRemain;
     }
   }
   else if ((event.keyCode == 80)) { // key 'p' = 80 unpause
