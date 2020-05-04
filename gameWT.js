@@ -1,66 +1,55 @@
+///// Game WIRE TAPPING, ver.20.05.04 - Game Engine 100%
+
 const canvas = document.getElementById('wiretap');
 const context = canvas.getContext('2d');
+
 let myRAF; // request Animation Frame var
 
 const board = document.getElementById('board');
-// const boardTop = document.getElementById('board-top');
-// const boardBottom = document.getElementById('board-bottom');
 
-const path00 = document.getElementById('path-00');
-const path01 = document.getElementById('path-01');
-const path02 = document.getElementById('path-02');
-const path31 = document.getElementById('path-31');
-const path41 = document.getElementById('path-41');
-const path51 = document.getElementById('path-51');
-const path07 = document.getElementById('path-07');
-
-const path23 = document.getElementById('path-02-3');
-
+const chipSS = document.getElementById('chip-SS');
 
 const chipA0 = document.getElementById('chip-A0');
 const chipA1 = document.getElementById('chip-A1');
 const chipP0 = document.getElementById('chip-P0');
 const chipP1 = document.getElementById('chip-P1');
 
-let chipSS = document.getElementById('chip-SS');
+const chip00 = document.getElementById('chip-00');
+const chip01 = document.getElementById('chip-01');
+const chip02 = document.getElementById('chip-02');
+const chip03 = document.getElementById('chip-03');
+const chip04 = document.getElementById('chip-04');
+const chip05 = document.getElementById('chip-05');
+const chip06 = document.getElementById('chip-06');
+const chip07 = document.getElementById('chip-07');
+const chip08 = document.getElementById('chip-08');
+const chip09 = document.getElementById('chip-09');
+const chip10 = document.getElementById('chip-10');
+const chip11 = document.getElementById('chip-11');
+const chip12 = document.getElementById('chip-12');
 
-let chip00 = document.getElementById('chip-00');
-let chip01 = document.getElementById('chip-01');
-let chip02 = document.getElementById('chip-02');
-let chip03 = document.getElementById('chip-03');
-let chip04 = document.getElementById('chip-04');
-let chip05 = document.getElementById('chip-05');
-let chip06 = document.getElementById('chip-06');
-let chip07 = document.getElementById('chip-07');
-let chip08 = document.getElementById('chip-08');
-let chip09 = document.getElementById('chip-09');
-let chip10 = document.getElementById('chip-10');
-let chip11 = document.getElementById('chip-11');
-let chip12 = document.getElementById('chip-12');
+const chip50 = document.getElementById('chip-50');
+const chip51 = document.getElementById('chip-51');
+const chip52 = document.getElementById('chip-52');
+const chip53 = document.getElementById('chip-53');
+const chip54 = document.getElementById('chip-54');
+const chip55 = document.getElementById('chip-55');
+const chip56 = document.getElementById('chip-56');
+const chip57 = document.getElementById('chip-57');
+const chip58 = document.getElementById('chip-58');
+const chip59 = document.getElementById('chip-59');
+const chip60 = document.getElementById('chip-60');
+const chip61 = document.getElementById('chip-61');
+const chip62 = document.getElementById('chip-62');
 
-let chip50 = document.getElementById('chip-50');
-let chip51 = document.getElementById('chip-51');
-let chip52 = document.getElementById('chip-52');
-let chip53 = document.getElementById('chip-53');
-let chip54 = document.getElementById('chip-54');
-let chip55 = document.getElementById('chip-55');
-let chip56 = document.getElementById('chip-56');
-let chip57 = document.getElementById('chip-57');
-let chip58 = document.getElementById('chip-58');
-let chip59 = document.getElementById('chip-59');
-let chip60 = document.getElementById('chip-60');
-let chip61 = document.getElementById('chip-61');
-let chip62 = document.getElementById('chip-62');
-
-let pause = false;    // State of the game Pause
+let gameState = 'running';    // State of the game
 let lastTime = 0;   // tech variable for time counter
 let lastDT = 16;    // tech variable for time counter
-let animationSpeed = 100 // cord Animation Speed for in ms 
-// GAME DIFFICULTY SETTINGS //
+let animationSpeed = 75 // cord Animation Speed for in ms 
+////////////////////////// GAME DIFFICULTY SETTINGS //////////////////////////////////////////
 const timerInput = 10; // time for solving puzzle in min;
-let timeRemain = timerInput * 60 * 1000; // countdown timer value in ms
-const chipTypes = 6;   // Number of Chip Types at board
-const nCP = 6; // number Of Crossed Paths in Between // Total Between-Path num = 24;
+const chipTypes = 12;   // Number of Chip Types at board
+const nCP = 8; // number Of Crossed Paths in Between // Total Between-Path num = 24;
 const nSC = 2; // number Of Sealed Chips
 const nHC = 2; // number Of HIDDEN Chips
 //          chipTypes - nCP   - nSC   - nHC
@@ -68,41 +57,66 @@ const nHC = 2; // number Of HIDDEN Chips
 // Easy       =  8      7-8     2       0
 // Normal     = 10       8      4       11
 // Hard       = 12    {11-13}   =5=   {12-18}
-
+///////////////////////////////////////////////////////////////////////////////////////////////
 
 // pop-up message Window display
 function popUpWindow(type = 'pause') {
-  if (type == 'alarm') {
+
+  if (type == 'alarm') {  //////////////////////  ALARM
     context.fillStyle = '#c00';
-    context.fillRect(440, 250, 400, 200);
+    context.fillStyle = "rgba(255,0,0,0.5)"
+    context.fillRect(393, 154, 500, 370);
+    context.fillRect(393-64*2, 154-64*2, 500+64*4, 370+64*4);
     context.font = "64px Arial";
     context.fillStyle = '#ff0';
     context.textAlign = "center";
-    context.fillText("!!! ALARM !!!", 640, 370);
-  } else if (type == 'clue') {
-    context.fillStyle = '#005';
-    context.fillRect(440, 250, 400, 200);
+    context.fillText("! ! ! ALARM ! ! !", 640, 298);
+    context.fillText("! ! ! ALARM ! ! !", 640, 298+64*2);
+
+  } else if (type == 'clue') {  //////////////// CLUE
+    context.fillStyle = '#ffd';
+    context.fillRect(393-64*2, 154-64*2, 500+64*4, 370+64*4);
     context.font = "64px Arial";
-    context.fillStyle = '#fff';
+    context.fillStyle = '#100';
     context.textAlign = "center";
-    context.fillText("--- CLUE! ---", 640, 370);
-  } else if (type == 'pause') {
-    context.fillStyle = '#005';
-    context.fillRect(440, 250, 400, 200);
+    context.font = "32px Arial";
+    context.fillText("You have successfully tapped a phone line", 640, 310);
+    context.fillText("and got clue № " + String(clueCounter), 640, 360);
+
+  } else if (type == 'pause') { ///////////////// PAUSE
+    context.fillStyle = "rgba(85,85,85,0.5)"
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = '#555';
+    context.fillRect(144, 32, 868, 614);
+    context.fillStyle = '#0f0';
     context.font = "64px Arial";
-    context.fillStyle = '#fff';
     context.textAlign = "center";
-    context.fillText("--- PAUSE ---", 640, 370);
-  } else if (type == 'time-out') {
+    context.fillText("--- PAUSE ---", 590, 330);
+    context.font = "32px Arial";
+    context.fillText("press SPACE to continue", 590, 390);
+
+  } else if (type == 'time-out') {  //////////////// TIME - OUT
     context.fillStyle = '#ffd';
     context.fillRect(440, 250, 400, 200);
     context.font = "36px Arial";
     context.fillStyle = '#100';
     context.textAlign = "center";
-    context.fillText("Time expired.", 640, 310);
-    context.fillText("0 phones tapped", 640, 360);
-    context.fillText("0 alarms", 640, 410);
+    context.fillText("--- TIME EXPIRED ---", 640, 310);
+    context.fillText(String(phoneCounter) + " phone(s) tapped", 640, 360);
+    context.fillText(String(alarmCounter) + " alarms", 640, 410);
+
+
+  } else if (type == 'victory') {  //////////////// VICORY
+    context.fillStyle = '#ffd';
+    context.fillRect(440, 250, 400, 200);
+    context.font = "36px Arial";
+    context.fillStyle = '#100';
+    context.textAlign = "center";
+    context.fillText("--- VICTORY ---", 640, 310);
+    context.fillText(String(phoneCounter) + " phone(s) tapped", 640, 360);
+    context.fillText(String(alarmCounter) + " alarms", 640, 410);
   }
+
 }
 
 // time formating to view '00:00:00'
@@ -248,7 +262,7 @@ function createFreeChip() {
 return res;
 }
 
-// validation of LOGIC CHIP SET layout
+// validation (to obtain 0's on all outputs) of LOGIC CHIP SET layout
 function correctChipSet() {
   let matrix = chipSet;
   let outSignals = 0;
@@ -263,22 +277,15 @@ function correctChipSet() {
       outSignals += signals[i][w-1];
     if (outSignals > 0) {
 
-      if (chipTypes<7) {
+      if (chipTypes<7) {            // Chip Types < 7
         if ((signals[j*2][w-2] == 1) && (signals[j*2+1][w-2] == 0)) 
             chipSet[j][wM-1] = 1107;
         else if ((signals[j*2][w-2] == 0) && (signals[j*2+1][w-2] == 1)) 
             chipSet[j][wM-1] = 1108;
         else if ((signals[j*2][w-2] == 1) && (signals[j*2+1][w-2] == 1)) 
             chipSet[j][wM-1] = 1109;
-//        else 
-//            chipSet[j][wM-1] = 1101 + Math.floor(Math.random()*2);
-
-//      if ((signals[j*2][0] == 1) && (signals[j*2+1][0] == 0)) 
-//            chipSet[j][0] = 1106;
-//      else if ((signals[j*2][0] == 0) && (signals[j*2+1][0] == 1)) 
-//            chipSet[j][0] = 1105;
       } 
-      else { // ChipTypes >= 7
+      else {                        // ChipTypes >= 7
 
         if ((signals[j*2][w-2] == 1) && (signals[j*2+1][w-2] == 0)) 
             chipSet[j][wM-1] = 1107;
@@ -310,12 +317,23 @@ return matrix;
 function calculateTagetState(targetMatrix) {
   let res = targetMatrix;
   let w = signalSet[0].length;
-  for (let j = 0; j < targetMatrix.length; j++) {
-    if ((signalSet[j][w-1] == 1) && (targetMatrix[j] < 10)) res[j] += 10;
-    else if ((signalSet[j][w-1] == 0) && (targetMatrix[j] >= 10)) res[j] -= 10;
+  res.forEach((element, i) => {
+    if (element == 11) {
+      res[i] = 111;
+      phoneCounter += 1;
+    }
+  });
+
+  for (let j = 0; j < res.length; j++) {
+    if      (res[j] == 0) res[j] = (signalSet[j][w-1] == 1) ? 10 : 0;
+    else if (res[j] == 1) res[j] = (signalSet[j][w-1] == 1) ? 11 : 1;
+    else if (res[j] == 10) res[j] = (signalSet[j][w-1] == 1) ? 10 : 10;
+    else if (res[j] == 101) res[j] = (signalSet[j][w-1] == 1) ? 111 : 101;
+    else if (res[j] == 111) res[j] = (signalSet[j][w-1] == 1) ? 111 : 101;
   }
+
 return res;
-}
+} // END of function
 
 // creating SIGNAL Matrix 10 х 14
 function createSignalSet(w, h) {
@@ -376,6 +394,7 @@ function calculateSignalSet(matrix) {
 return matrix;
 } // END of function calculate Signals END
 
+// Calculating TILE (Chip or Path) Output SIGNAL based on 4 (four) Input Signals
 function calculateTile(tile, sigIn, sigX) {
   let sigOut = {a:0, z:0}
 // TILE NORMALIZATION to 2 last digits <= 12
@@ -499,7 +518,8 @@ function drawPathSet(matrix) {
 function tileIdent(tile) {
   let mIJ = tile % 1000;
   let res = chip00;
-  if (((tile % 100) - (tile % 10)) == 70) {
+  if (((tile % 100) - (tile % 10) == 70) ||
+        ((tile % 100) - (tile % 10)) == 80) {
     res = (((tile % 1000)-(tile % 100)) == 200 ) ? chip50 : chip00;
   }
   else {
@@ -553,16 +573,20 @@ function drawChipSet(matrix) {
   }
 }
 
+// Display TARGET CHIPs 
 function drawTargetChipSet(matrix) {
   let tile = chipA0;
   for (let j = 0; j < 10; j++) {
     if      (matrix[j] === 0) tile = chipA0;
     else if (matrix[j] === 10) tile = chipA1;
     else if (matrix[j] === 1) tile = chipP0;
-    else if (matrix[j] === 11) tile = chipP1; // (matrix[j] == 11)
+    else if (matrix[j] === 101) tile = chipP0;
+    else if (matrix[j] === 11) tile = chipP1;
+    else if (matrix[j] === 111) tile = chipP1;
 
     context.drawImage(tile, 1066 + (j%2)*96, (j*2+1)*32 - 13); 
-//    context.fillText(matrix[j], 1090 + (j%2)*96, (j*2+1)*32 + 25)
+//    context.fillStyle = '#000'
+//    context.fillText(matrix[j], 1140 + (j%2)*96, (j*2+1)*32 + 25)
   }
 }
 
@@ -587,11 +611,41 @@ function drawSignalSet(matrix) {
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////////
+// Draw board and chipSS
+function drawBoard() {
+    context.drawImage(board, 0, 0);
+    for (let i = 0; i < chipSet.length; i++) {
+      for (let j = 0; j < chipSet[i].length; j++) {
+        if (chipSet[i][j] / 1000 > 2) {
+        context.drawImage(chipSS, 159 + 128*j, 38 + 128*i);
+        }
+      }   
+    }   
+}
+
+/////////// CORD ANIMATION /////////////////////////////////
+// Cord types cration
+let cordD = createCord('direct');
+let cordL = createCord('long');
+let cordXDn = createCord('cross-down');
+let cordXUp = createCord('cross-up');
+let cordX2D = createCord('cross-2down');
+let cordX2U = createCord('cross-2up');
+let cordXR = createCord('cross-R');
+let cordXI = createCord('cross-I');
+let cordHL = createCord('half-long');
+let cord5v = createCord('board5v');
+let cordGnd = createCord('boardGnd');
+
+// Animation of all signal cords
 function drawSignalCord() {
     let cordState = {a:0, z:0};
     let h = signalSet.length;
     let w = signalSet[0].length;
+
+// Board Cords Animation (+5V and GND)
+    drawCord(cord5v, {x:242, y:669}, 1);
+    drawCord(cordGnd, {x:274, y:669}, 0);
 
 // Animation input Half-long cords
     for (let i = 0; i < h; i += 2) {
@@ -640,39 +694,7 @@ function drawSignalCord() {
     }
 } // END of function
 
-function drawBoardCord() {
-                         ///// EMPTY 
-}
-
-// Draw board: boarTOP, boardBOTTOM, chipSS
-function drawBoard() {
-    context.drawImage(board, 0, 0);
-//    context.drawImage(boardTop, 0, 0);
-//    context.drawImage(boardBottom, 0, 692);
-    for (let i = 0; i < chipSet.length; i++) {
-      for (let j = 0; j < chipSet[i].length; j++) {
-        if (chipSet[i][j] / 1000 > 2) {
-        context.drawImage(chipSS, 159 + 128*j, 38 + 128*i);
-        }
-      }   
-    }   
-}
-
-/////////// CORD ANIMATION /////////////////
-
-let cordD = createCord('direct');
-let cordL = createCord('long');
-let cordXDn = createCord('cross-down');
-let cordXUp = createCord('cross-up');
-let cordX2D = createCord('cross-2down');
-let cordX2U = createCord('cross-2up');
-let cordXR = createCord('cross-R');
-let cordXI = createCord('cross-I');
-let cordHL = createCord('half-long');
-let cord5v = createCord('board5v');
-let cordGnd = createCord('boardGnd');
-
-
+// anmation of a single cord by type
 function drawCord(cordPath, cordStart = {x:0, y:0}, bool) {
 // 0 1 _ _ 4 5 _ _ 8 9 __ __ 12 13 __ __ 
 // _ _ 2 3 _ _ 6 7 _ _ 10 11 __ __ 14 15
@@ -686,6 +708,7 @@ function drawCord(cordPath, cordStart = {x:0, y:0}, bool) {
     }); 
 }
 
+// cord type creation [[0,0], [1,0], [2,0], [3,1], ... etc]
 function createCord(cordType) {
     let matrix = []
     if (cordType == 'direct') 
@@ -742,11 +765,10 @@ function createCord(cordType) {
         for (let j=76; j<100; j++) matrix[j] = [-56, 53-j]; // 24 up 
         for (let i=100; i<108; i++) matrix[i] = ((i<103)||(i>105)) ? [-156+i, 53-i] : [1300, 900]; // 8 !!!
         for (let j=108; j<132; j++) matrix[j] = [-48, 53-j]; // 24 up 
-
-
-
-
-
+        for (let i=132; i<140; i++) matrix[i] = [84-i, 53-i]; // 8  NW
+        for (let j=140; j<164; j++) matrix[j] = [-56, 53-j]; // 24 up 
+        for (let i=164; i<172; i++) matrix[i] = ((i<167)||(i>169)) ? [-220+i, 53-i] : [1300, 900]; // 8 !!!
+        for (let j=172; j<197; j++) matrix[j] = [-48, 53-j]; // 25 up 
     }
     return matrix;
 }
@@ -756,7 +778,7 @@ function createCord(cordType) {
 function update(time = 0) {
 // CountDown Timer Calculations  
   let deltaTime = time - lastTime;
-  if ((deltaTime > 20) || (deltaTime < 0)) {deltaTime = lastDT}
+  if ((deltaTime > 20) || (deltaTime < 0)) deltaTime = lastDT
   lastTime = time;
   lastDT = deltaTime;
   animationCounter += deltaTime; // cord animation 
@@ -766,57 +788,56 @@ function update(time = 0) {
   }
   if (aP>3) aP = 0;
 
-// Drawing Board, Pathes, Chips, Signals, Timer
-    drawBoard();
-    
-    drawChipSet(chipSet);
-    drawFreeChip();
-    signalSet = calculateSignalSet(signalSet); // recalculation state of Signals
-//    drawSignalSet(signalSet);
-//    drawPathSet(pathSet);
-
-
-
-
-
-
-    drawCord(cord5v, {x:242, y:669}, 0);
-    drawCord(cordGnd, {x:274, y:669}, 1);
-
-
-
-
-
-
-
-
-    drawSignalCord();
+// Drawing Board, Timer, Logic Chips, Target Chips, Signal Cords, 
+  drawBoard();  
+  drawChipSet(chipSet);
+  drawFreeChip();
+  signalSet = calculateSignalSet(signalSet); // recalculation state of Signals
+  drawSignalCord();
 
 // recalculation state of Target Chips
-    targetChipSet = calculateTagetState(targetChipSet);
-    drawTargetChipSet(targetChipSet);
+  targetChipSet = calculateTagetState(targetChipSet);
+  drawTargetChipSet(targetChipSet);
 
-    drawNewTimer(timeRemain);
-    timeRemain -= deltaTime;
+  drawNewTimer(timeRemain);
+  timeRemain -= deltaTime;
 
 ///////////  POP UP WINDOWS ON EVENTS
+ 
+  targetChipSet.forEach(targetChip => {
+    if (targetChip == 10) {
+      gameState = 'alarm';
+      alarmCounter +=1;
+    }
+  });
 
-    // if (targetChipSet.some(targetChip => targetChip == 10)) {
-    //     timeRemain = 0;
-    //     cancelAnimationFrame(myRAF);
-    //     popUpWindow('alarm');
-    // }
+  targetChipSet.forEach(targetChip => {
+    // if ((targetChip == 11) && (gameState != 'alarm')) {
+    if (targetChip == 11) {
+      gameState = 'clue';
+      clueCounter +=1;
+    }
+  });
 
-    // if (targetChipSet.some(targetChip => targetChip == 11)) {
-    //     popUpWindow('clue');
-    //     pause = true;
-    // }
-
+  if (targetChipSet.some(targetChip => targetChip == 11)) {
+    if (gameState != 'alarm') {
+      gameState = 'clue';
+    }
+  }
+    
+  if (phoneCounter == 5) gameState = 'victory';  /////// VICTORY CONDITION
+   
 // ANIMATION FRAME LOGIC
-    if ((timeRemain > 0) && (!pause)) {
+    if ((timeRemain > 0) && (gameState == 'running')) { // Game Running
       myRAF = requestAnimationFrame(update);
-    } else if (pause) {
+    } else if (gameState == 'pause') {
         popUpWindow('pause');
+    } else if (gameState == 'clue') {
+        popUpWindow('clue');
+    } else if (gameState == 'alarm') {
+        popUpWindow('alarm');
+    } else if (gameState == 'victory') {
+        popUpWindow('victory');        
     } else if (timeRemain <= 0) {
         timeRemain = 0;
         drawNewTimer(timeRemain);
@@ -824,26 +845,32 @@ function update(time = 0) {
         popUpWindow('time-out');
     }
 }
-// Creating GAME BOARD LAYOUT 
+
+////////////////////////////// Creating GAME BOARD LAYOUT ///////////////////////////
 const player = {      // position of BLUE CHIP 
   pos: {y: 2, x: 3},
 };
-let animationCounter = 0;
+let timeRemain = timerInput * 60 * 1000; // countdown timer value in ms
+let animationCounter = 0;               // timer for each animation phase
 let aP = 0;  // animathion Phase [0, 1, 2, 3]
 
-let freeChip = createFreeChip();
-let chipSet = createChipSet(7, 5); // Create Initial Chip Set 
-let targetChipSet = createTargetChipSet(); // Create Phones and Bells (5 x 5)
-const pathSet = createPathSet(6,9); // Create Initial Path Layout
-let signalSet = createSignalSet(14, 10); // Create Signal Matrix
-chipSet = correctChipSet();
+let clueCounter = 0;
+let phoneCounter = 0;
+let alarmCounter = 0;
 
-// KEYBOARD CONTROLS:
+let freeChip = createFreeChip();            // Init of FREE CHIP
+let chipSet = createChipSet(7, 5);          // Init of LOGIC CHIP Set 
+let targetChipSet = createTargetChipSet();  // Init of TARGET CHIPs: Phones and Bells (5 x 5)
+const pathSet = createPathSet(6,9);         // Init of PATH Layout
+let signalSet = createSignalSet(14, 10);    // Init of Signal Matrix
+chipSet = correctChipSet();                 // Correction of Logic Chips Layout to gain 0's output
+
+// KEYBOARD CONTROLS:////////////////////////////////////////////
 //                    arrows: to move bleu chip
 //                    space : to switch Blue and Free Chips
 //                    'p': to pause and unpause game  
 document.addEventListener('keydown', event => {
-  if (!pause) {
+  if (gameState == 'running')  {
     if (event.keyCode === 38) {       // key arrow up
       if (player.pos.y > 0) {
         moveBlueChip(0, -1);
@@ -865,18 +892,24 @@ document.addEventListener('keydown', event => {
           switchChips();
         }
     } else if (event.keyCode == 80) { // key 'p' 80
-        pause = true;
+        gameState = 'pause';
     }
-  }
-  else if ((event.keyCode == 80)) { // key 'p' = 80 unpause
-    pause = false;
-    update();
+  } ///////// EVENTS in PAUSE state of a game ///////////////////////
+  else if (gameState == 'pause') {
+        if ((event.keyCode == 80) || (event.keyCode == 32)) { // key 'p' = 80 unpause
+            gameState = 'running';
+            update();
+        }
+  }///////// EVENTS in CLUE state of a game ///////////////////////
+  else if (gameState == 'clue') {
+    if ((event.keyCode == 80) || (event.keyCode == 32)) { // key 'p' = 80 unpause
+        //targetChipSet.forEach(targetChip => {if (targetChip == 11) targetChip = 111;});
+        gameState = 'running';
+        update();
     }
-  else if ((event.keyCode == 32)) { // key 'Space' to continue
-  pause = false;
-  update();
-  }
-}); 
+}
+
+}); // END of document.addEventListener('keydown', event =>
 
 // MAIN GAME LOOP Init
 update();
