@@ -74,6 +74,8 @@ function popUpWindow(type = 'pause') {
     context.fillText("! ! ! ALARM ! ! !", 640, 298+64*2);
 
   } else if (type == 'clue') {  //////////////// CLUE
+    context.fillStyle = "rgba(85,85,85,0.5)"
+    context.fillRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = '#ffd';
     context.fillRect(393-64*2, 154-64*2, 500+64*4, 370+64*4);
     context.font = "64px Arial";
@@ -89,11 +91,12 @@ function popUpWindow(type = 'pause') {
     context.fillStyle = '#555';
     context.fillRect(144, 32, 868, 614);
     context.fillStyle = '#0f0';
-    context.font = "64px Arial";
+    context.font = "64px Consolas";
     context.textAlign = "center";
-    context.fillText("--- PAUSE ---", 590, 330);
-    context.font = "32px Arial";
-    context.fillText("press SPACE to continue", 590, 390);
+    context.fillText("--- PAUSE ---", 590, 310);
+    context.font = "32px Consolas";
+    context.fillText("left-click or press SPACE", 590, 390);
+    context.fillText(" to continue", 590, 450);
 
   } else if (type == 'time-out') {  //////////////// TIME - OUT
     context.fillStyle = '#ffd';
@@ -317,11 +320,12 @@ return matrix;
 function calculateTagetState(targetMatrix) {
   let res = targetMatrix;
   let w = signalSet[0].length;
+  phoneCounter = 0;
   res.forEach((element, i) => {
     if (element == 11) {
       res[i] = 111;
-      phoneCounter += 1;
     }
+    if (res[i] == 111) phoneCounter += 1;
   });
 
   for (let j = 0; j < res.length; j++) {
@@ -490,28 +494,21 @@ function switchChips() {
   freeChip = tempChip - 100;
 }
 
-// display layout for values PATH elements
+// - - - OBSOLETE - - - // display layout for values PATH elements 
 function drawPathSet(matrix) {
-  context.font = "20px Arial";
-  context.fillStyle = '#ff0';
-  context.textAlign = "center";
-  let h = matrix.length;
-  let tile;
-  for (let i = 0; i < h; i++) {
-    w = matrix[i].length;
-    for (let j = 0; j < w; j++) {
-    //   if (matrix[i][j] == 21) tile = path01;
-    //   else if (matrix[i][j] == 22) tile = path02;
-    //   else if (matrix[i][j] == 31) tile = path31;
-    //   else if (matrix[i][j] == 41) tile = path41;
-    //   else if (matrix[i][j] == 51) tile = path51;
-    //   else if (matrix[i][j] == 07) tile = path07;
-    //   else tile = path00;
-    //   if (tile != path00) context.drawImage(tile, 234 + 128 * j, 51 + 64*i);
-  context.fillText(matrix[i][j], 260 + 128 * j, 90 + 64*i);
+  // context.font = "20px Arial";
+  // context.fillStyle = '#ff0';
+  // context.textAlign = "center";
+  // let h = matrix.length;
+  // let tile;
+  // for (let i = 0; i < h; i++) {
+  //   w = matrix[i].length;
+  //   for (let j = 0; j < w; j++) {
+  //   //   if (tile != path00) context.drawImage(tile, 234 + 128 * j, 51 + 64*i);
+  // context.fillText(matrix[i][j], 260 + 128 * j, 90 + 64*i);
 
-    }
-  }
+  //   }
+  // }
 }
 
 // Tile identification function
@@ -559,9 +556,6 @@ function tileIdent(tile) {
 function drawChipSet(matrix) {
   let aj = 194;    let bj = 128;
   let ai = 105;    let bi = 128;
-  context.font = "20px Arial";
-  context.fillStyle = '#ffd';
-  context.textAlign = "center";
   let h = matrix.length;
   let tile = chip00;
   for (let i = 0; i < h; i++) {
@@ -596,12 +590,10 @@ function drawFreeChip() {
 //    context.fillText(freeChip, 192 + 150*3, 90 + 100*7);
   }
 
-// Display Signal Set layout based on calculated signal state
+// - - - OBSOLETE - - - // Display Signal Set layout based on calculated signal state
 function drawSignalSet(matrix) {
   let h = matrix.length;
   let w = matrix[0].length;
-  context.font = "20px Arial";
-  context.textAlign = "center";
   for (let i = 0; i < h; i++) {
       for (let j = 0; j < w; j++) {
         context.fillStyle = (matrix[i][j] == 1) ? '#f00' : '#0f0';
@@ -774,7 +766,62 @@ function createCord(cordType) {
 }
 //////// END of CORD ANIMATION ////////////////////////////
 
-// Main GAME LOOP including countdown time calculation
+////----- Functions for MOUSE and TOUCH ------------------//
+
+// Getting True Mouse Position at Canvas
+function getMousePosition(canvas, evt) {
+  let rect = canvas.getBoundingClientRect();
+  return {
+      x: (evt.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
+      y: (evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
+  };
+}
+
+// Touch Area CONSTRUCTOR
+function component(x, y, width, height) {
+  this.width = width;
+  this.height = height;
+  this.x = x;
+  this.y = y;
+  this.update = function () {
+    context.fillStyle = "#fff";
+    context.beginPath();
+    context.lineWidth = "6";
+    context.strokeStyle = "red";
+    context.rect(this.x, this.y, this.width, this.height);
+    context.stroke();
+//    context.strokeRect(this.x, this.y, this.width, this.height);
+}
+  this.clicked = function () {
+      var myleft = this.x;
+      var myright = this.x + (this.width);
+      var mytop = this.y;
+      var mybottom = this.y + (this.height);
+      var clicked = true;
+      if ((mybottom < pointerPos.y) || (mytop > pointerPos.y) || (myright < pointerPos.x) || (myleft > pointerPos.x)) {
+          clicked = false;
+      }
+      return clicked;
+  }
+}
+
+// Touch Area INIT using Constractor
+function respChipPosition() {
+  respFreeChip = new component(620, 722, 48, 64);
+
+  respChipSet = [];
+  let h = chipSet.length;
+  for (let i = 0; i < h; i++) {
+    respChipSet[i] = [];
+    let w = chipSet[i].length - 1;
+    for (let j = 0; j < w; j++) {
+        respChipSet[i][j] = new component(170 + 128*j, 50 + 128*i, 48, 64);
+    }
+  }
+}
+////////////////////////////////////////////////////////////////
+// Main GAME LOOP including countdown time calculation    /////
+///////////////////////////////////////////////////////////////
 function update(time = 0) {
 // CountDown Timer Calculations  
   let deltaTime = time - lastTime;
@@ -786,7 +833,7 @@ function update(time = 0) {
       aP += 1;
       animationCounter = 0;
   }
-  if (aP>3) aP = 0;
+  if (aP>3) aP = 0; // Animation Phase Counter Reset
 
 // Drawing Board, Timer, Logic Chips, Target Chips, Signal Cords, 
   drawBoard();  
@@ -802,32 +849,28 @@ function update(time = 0) {
   drawNewTimer(timeRemain);
   timeRemain -= deltaTime;
 
-///////////  POP UP WINDOWS ON EVENTS
- 
-  targetChipSet.forEach(targetChip => {
-    if (targetChip == 10) {
-      gameState = 'alarm';
-      alarmCounter +=1;
-    }
-  });
+///////////  POP UP WINDOWS ON EVENTS /////////////////////////////////////
 
+//////////  ALARM State ???
+  if (targetChipSet.includes(10)) {
+    gameState = 'alarm';
+    alarmCounter = targetChipSet.filter(val => val == 10).length;
+  }
+
+/////////   CLUE State ???
   targetChipSet.forEach(targetChip => {
-    // if ((targetChip == 11) && (gameState != 'alarm')) {
     if (targetChip == 11) {
       gameState = 'clue';
       clueCounter +=1;
     }
   });
 
-  if (targetChipSet.some(targetChip => targetChip == 11)) {
-    if (gameState != 'alarm') {
-      gameState = 'clue';
-    }
-  }
-    
+////////  VICTORY condition
   if (phoneCounter == 5) gameState = 'victory';  /////// VICTORY CONDITION
-   
-// ANIMATION FRAME LOGIC
+
+////////////////////////////////////////////////////////////////////////
+////////        ANIMATION FRAME LOGIC       ////////////////////////////
+///////////////////////////////////////////////////////////////////////
     if ((timeRemain > 0) && (gameState == 'running')) { // Game Running
       myRAF = requestAnimationFrame(update);
     } else if (gameState == 'pause') {
@@ -846,7 +889,10 @@ function update(time = 0) {
     }
 }
 
-////////////////////////////// Creating GAME BOARD LAYOUT ///////////////////////////
+/////////////////////////////////////////////////////////////////////////
+/////////////////////   Creating GAME BOARD LAYOUT    ///////////////////
+////////////////////////////////////////////////////////////////////////
+let pointerPos = {x: false, y:false};
 const player = {      // position of BLUE CHIP 
   pos: {y: 2, x: 3},
 };
@@ -863,12 +909,14 @@ let chipSet = createChipSet(7, 5);          // Init of LOGIC CHIP Set
 let targetChipSet = createTargetChipSet();  // Init of TARGET CHIPs: Phones and Bells (5 x 5)
 const pathSet = createPathSet(6,9);         // Init of PATH Layout
 let signalSet = createSignalSet(14, 10);    // Init of Signal Matrix
-chipSet = correctChipSet();                 // Correction of Logic Chips Layout to gain 0's output
+chipSet = correctChipSet();     // Correction of Logic Chips Layout to gain 0's output
+respChipPosition();                         // Creating LOGIC CHIPs TOUCH areas
 
 // KEYBOARD CONTROLS:////////////////////////////////////////////
-//                    arrows: to move bleu chip
+//                    arrows: to move blue chip
 //                    space : to switch Blue and Free Chips
 //                    'p': to pause and unpause game  
+
 document.addEventListener('keydown', event => {
   if (gameState == 'running')  {
     if (event.keyCode === 38) {       // key arrow up
@@ -907,9 +955,65 @@ document.addEventListener('keydown', event => {
         gameState = 'running';
         update();
     }
-}
-
+  }
 }); // END of document.addEventListener('keydown', event =>
 
-// MAIN GAME LOOP Init
+///////////////////  MOUSE EVENTS /////////////////////////
+
+document.addEventListener('click', event => {
+  pointerPos = getMousePosition(canvas, event);
+  if (gameState == 'running')  {
+      if (respFreeChip.clicked()) {
+          if ((xDigit(chipSet[player.pos.y][player.pos.x], 0) !== 2))
+          switchChips();
+      } else {
+          respChipSet.forEach((row, y) => {
+              row.forEach((val, x) => {
+                  if (val.clicked()) {
+                      moveBlueChip(x - player.pos.x, y - player.pos.y);
+                  }
+                });
+            });
+      }
+  } else if ((gameState == 'pause') || (gameState == 'clue')) {
+    gameState = 'running';
+    update();
+  }
+}); // END of document.addEventListener('mousedown'
+
+document.addEventListener('mouseup', event => {
+  pointerPos.x = false;
+  pointerPos.y = false;
+}); // END of document.addEventListener('mouseup'
+
+/////////////////   TOUCH-PAD Events  /////////////////////
+
+document.addEventListener('touchstart', event => {
+  pointerPos = getMousePosition(canvas, event);
+  if (gameState == 'running')  {
+      if (respFreeChip.clicked()) {
+          if ((xDigit(chipSet[player.pos.y][player.pos.x], 0) !== 2))
+          switchChips();
+      } else {
+          respChipSet.forEach((row, y) => {
+              row.forEach((val, x) => {
+                  if (val.clicked()) {
+                      moveBlueChip(x - player.pos.x, y - player.pos.y);
+                  }
+                });
+            });
+      }
+  } else if ((gameState == 'pause') || (gameState == 'clue')) {
+    gameState = 'running';
+    update();
+  }
+}); // END of document.addEventListener('touchstart')
+
+document.addEventListener('touchend', event => {
+  pointerPos.x = false;
+  pointerPos.y = false;
+}); // END of document.addEventListener('touchend'
+
+
+// MAIN GAME LOOP Run
 update();
