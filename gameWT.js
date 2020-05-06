@@ -851,6 +851,15 @@ function update(time = 0) {
 
 ///////////  POP UP WINDOWS ON EVENTS /////////////////////////////////////
 
+  
+  context.font = "64px Arial";
+  context.fillStyle = '#ff0';
+  context.textAlign = "center";
+
+  context.fillText(String(Math.round(pointerPos.x)), 60, 50);
+  context.fillText(String(Math.round(pointerPos.y)), 230, 50);
+
+
 //////////  ALARM State ???
   if (targetChipSet.includes(10)) {
     gameState = 'alarm';
